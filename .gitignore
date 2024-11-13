@@ -126,7 +126,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
+
 .envrc
 .venv
 .venvs
@@ -200,3 +200,5 @@ test.py
 
 # course json directory
 courses/
+working_dir/agents
+.env
