@@ -1,5 +1,4 @@
 from sentence_transformers import SentenceTransformer
-from oscopilot.utils.database import LogDatabase
 
 model = SentenceTransformer("nomic-ai/nomic-embed-text-v1", trust_remote_code=True)
 def get_embedding(data):
@@ -7,7 +6,6 @@ def get_embedding(data):
    embedding = model.encode(data)
    return embedding.tolist()
 
-log_db = LogDatabase()
 data = [
    "Titanic: The story of the 1912 sinking of the largest luxury liner ever built",
    "The Lion King: Lion cub and future king Simba searches for his identity",
