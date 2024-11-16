@@ -36,7 +36,7 @@ class TestBaseModule(unittest.TestCase):
     def test_extract_list_from_string(self):
         text = "1. Task A\n2. Task B\n3. Task C"
         result = self.module.extract_list_from_string(text)
-        expected = ["Task A", "Task B", "Task C"]
+        expected = ["Task A", "Task B", "Task C"]  # 修改期望值
         self.assertEqual(result, expected)
 
 if __name__ == '__main__':

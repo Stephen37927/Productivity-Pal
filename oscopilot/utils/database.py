@@ -1,7 +1,7 @@
 from cmath import isnan
 
-from matplotlib.backend_tools import cursors
-from pymongo import MongoClient
+# from matplotlib.backend_tools import cursors
+from pymongo import MongoClient, ASCENDING
 from dotenv import load_dotenv
 import os
 from sentence_transformers import SentenceTransformer
@@ -44,11 +44,68 @@ class Database:
             print.error(f"Error fetching collection {collection_name}: {e}")
             raise
 
-    def insert(self, data, many = False):
-        raise NotImplementedError
+    def insert(self, data):
+        i = 0
+        insert_count = 0
+        for item in data:
+            i = i+1
+            for key, value in item.items():
+                text = key + ": " + str(value)
+            embedding = self.get_embedding(text)
+            document = {**item, "text": text, "embedding": embedding}
+            try:
+                self.collection.insert_one(document)
+                insert_count = insert_count + 1
+            except Exception as e:
+                print(f"Error inserting document {i}: {e}")
+                continue
+        print(f"Inserted {insert_count} documents into the collection.")
 
-    def find(self, query, limit = False):
-        raise NotImplementedError
+    def find_by_deadline(self, deadline_str):
+        """
+        Finds documents with a deadline matching or earlier than the specified deadline.
+
+        Parameters:
+        deadline (str): The deadline date in ISO 8601 format (e.g., "2024-11-30").
+
+        Returns:
+        list: A list of matching documents.
+        """
+
+        try:
+            # 将截止日期字符串转换为 datetime 对象
+            deadline = datetime.strptime(deadline_str, "%Y%m%d%H%M")
+            now = datetime.now()
+
+            # 计算从当前时刻到截止日期的持续时长（分钟）
+            duration = (deadline - now).total_seconds() / 60
+
+            # 查询数据库中的所有日志
+            logs = list(self.collection.find())
+
+            # 找到持续时长与计算结果接近的记录（±5分钟）
+            results = []
+            for log in logs:
+                # 检查记录是否包含 "Start Time" 和 "End Time"
+                if "Start Time" not in log or "End Time" not in log:
+                    continue  # 跳过不完整的记录
+
+                try:
+                    start_time = datetime.strptime(log["Start Time"], "%Y%m%d%H%M")
+                    end_time = datetime.strptime(log["End Time"], "%Y%m%d%H%M")
+                    log_duration = (end_time - start_time).total_seconds() / 60
+
+                    # 判断持续时长是否在 ±60 分钟范围内
+                    if abs(log_duration - duration) <= 60:
+                        results.append(log)
+                except Exception as e:
+                    print(f"Error processing log: {log}, Error: {e}")
+                    continue
+
+            return results
+        except Exception as e:
+            print(f"Error during find_by_deadline: {e}")
+            return []
 
 
 class DailyLogDatabase(Database):
