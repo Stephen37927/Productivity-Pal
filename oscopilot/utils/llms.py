@@ -16,7 +16,7 @@ BASE_URL = os.getenv('OPENAI_BASE_URL')
 
 # add
 MODEL_SERVER = os.getenv('MODEL_SERVER')
-
+ENDPOINT = os.getenv('DEFAULT_ENDPOINT')
 
 class OpenAI:
     """
@@ -160,6 +160,7 @@ class Doubao:
         self.base_url = BASE_URL
         self.api_key = OPENAI_API_KEY
         self.client = Ark(base_url=self.base_url, api_key=self.api_key)
+        self.endpoint = ENDPOINT
 
     def chat(self, messages, temperature=0,prefix=""):
         """
@@ -178,7 +179,7 @@ class Doubao:
 
         """
         stream = self.client.chat.completions.create(
-            model="ep-20241112153408-rnvqn",
+            model= self.endpoint,
             messages=messages,
             temperature=temperature,
             stream=True
@@ -190,8 +191,8 @@ class Doubao:
             response += chunk.choices[0].delta.content
         return response
 
-    def set_model(self, model_name):
-        self.model_name = model_name
+    def set_endpoint(self, endpoint):
+        self.endpoint = endpoint
 
 class DoubaoEmbedding(Doubao):
     def __init__(self):

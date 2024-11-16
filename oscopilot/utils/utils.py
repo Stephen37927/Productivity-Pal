@@ -334,6 +334,8 @@ def send_chat_prompts(sys_prompt, user_prompt, llm, prefix=""):
             {"role": "system", "content": sys_prompt},
             {"role": "user", "content": user_prompt},
         ]
+    print(f"Sending chat prompts to {llm.__class__.__name__} model...")
+    print("message", message)
     return llm.chat(message, prefix=prefix)
 
 
