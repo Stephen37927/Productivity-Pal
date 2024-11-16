@@ -1,5 +1,6 @@
 from cmath import isnan
 
+from matplotlib.backend_tools import cursors
 from pymongo import MongoClient
 from dotenv import load_dotenv
 import os
@@ -46,8 +47,8 @@ class Database:
     def insert(self, data, many = False):
         raise NotImplementedError
 
-    def find(self, query):
-        self.collection.aggregate(query)
+    def find(self, query, limit = False):
+        raise NotImplementedError
 
 
 class DailyLogDatabase(Database):
@@ -60,7 +61,63 @@ class DailyLogDatabase(Database):
         insert_count = 0
         for item in data:
             i = i+1
-            text = "Activity: "+ str(item["Name"])+", "+"Type: "+ str(item["类型"])
+            text = "Activity: "+ str(item["Name"])+", "+"Type: "+ str(item["Type"])
+            embedding = self.get_embedding(text)
+            document = {**item, "text": text, "embedding": embedding}
+            try:
+                self.collection.insert_one(document)
+                insert_count = insert_count + 1
+            except Exception as e:
+                print(f"Error inserting document {i}: {e}")
+                continue
+        print(f"Inserted {insert_count} documents into the collection.")
+
+    def find(self, query, limit = -1):
+        cursors = self.collection.find(query)
+        cursors = cursors.limit(limit) if limit > 0 else cursors
+        response = []
+        for cursor in cursors:
+            response.append(cursor)
+        logs = []
+        for item in response:
+            log= {}
+            for key, value in item.items():
+                if key == "Name":
+                    log["Active:"] = value
+                elif key == "Type":
+                    log["Type:"] = value
+                elif key == "Start Time":
+                    try:
+                        date_obj = datetime.strptime(value, "%Y%m%d%H%M")
+                        log["Start Time:"] = date_obj.strftime("%Y-%m-%d %H:%M")
+                    except:
+                        pass
+                elif key == "End Time":
+                    try:
+                        date_obj = datetime.strptime(value, "%Y%m%d%H%M")
+                        log["End Time:"] = date_obj.strftime("%Y-%m-%d %H:%M")
+                    except:
+                        pass
+                elif key == "Date":
+                    try:
+                        date_obj = datetime.strptime(value, "%Y%m%d")
+                        log["Date:"] = date_obj.strftime("%Y-%m-%d")
+                    except:
+                        pass
+            logs.append(log)
+        return logs
+
+class HabitDatabase(Database):
+    def __init__(self, collection_name):
+        super().__init__()
+        self.collection = self.db[collection_name]
+    def insert(self, data):
+        i = 0
+        insert_count = 0
+        for item in data:
+            i = i+1
+            for key, value in item.items():
+                text = key + ": " + str(value)
             embedding = self.get_embedding(text)
             document = {**item, "text": text, "embedding": embedding}
             try:
@@ -78,24 +135,36 @@ if __name__ == '__main__':
     for item in data:
         input = {}
         for key, value in item.items():
+            starttime = 0
+            endtime = 0
             if key == "Name":
                 input["Name"] = value
             if key == "类型":
-                input["类型"] = value
+                input["Type"] = value
             if key == "开始时间":
                 try:
                     date_obj = datetime.strptime(value, "%B %d, %Y %I:%M %p (GMT+8)")
                     date_obj += timedelta(weeks=7)
-                    input["开始时间"] = date_obj.strftime("%B %d, %Y %I:%M %p (GMT+8)")
+                    input["Start Time"] = date_obj.strftime("%Y%m%d%H%M")
+                    starttime = int(input["Start Time"])
                 except:
-                    input["开始时间"] = value
+                    pass
             if key == "结束时间":
                 try:
                     date_obj = datetime.strptime(value, "%B %d, %Y %I:%M %p (GMT+8)")
                     date_obj += timedelta(weeks=7)
-                    input["结束时间"] = date_obj.strftime("%B %d, %Y %I:%M %p (GMT+8)")
+                    input["End Time"] = date_obj.strftime("%Y%m%d%H%M")
+                    endtime = int(input["End Time"])
+                    int["Duration"] = endtime - starttime
                 except:
-                    input["结束时间"] = value
+                    pass
+            if key == "日期":
+                try:
+                    date_obj = datetime.strptime(value, "%Y/%m/%d")
+                    date_obj += timedelta(weeks=7)
+                    input["Date"] = date_obj.strftime("%Y%m%d")
+                except:
+                    pass
         input_data.append(input)
 
     log_db = DailyLogDatabase("daily_logs")

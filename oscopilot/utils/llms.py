@@ -9,14 +9,13 @@ from openai import base_url
 from volcenginesdkarkruntime import Ark
 
 load_dotenv(override=True)
-MODEL_NAME = os.getenv('MODEL_NAME')
+MODEL_NAME = os.getenv('DEFAULT_ENDPOINT')
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 OPENAI_ORGANIZATION = os.getenv('OPENAI_ORGANIZATION')
 BASE_URL = os.getenv('OPENAI_BASE_URL')
 
 # add
 MODEL_SERVER = os.getenv('MODEL_SERVER')
-
 
 class OpenAI:
     """
@@ -69,6 +68,9 @@ class OpenAI:
         logging.info(f"{prefix}Response: {response.choices[0].message.content}")
 
         return response.choices[0].message.content
+
+    def set_model_name(self, model_name):
+        self.model_name = model_name
 
 
 class OLLAMA:
@@ -133,6 +135,9 @@ class OLLAMA:
             logging.error("Failed to call LLM: ", response.status_code)
             return ""
 
+    def set_model_name(self, model_name):
+        self.model_name = model_name
+
 
 class Doubao:
     """
@@ -178,9 +183,8 @@ class Doubao:
 
         """
         stream = self.client.chat.completions.create(
-            model="ep-20241112153408-rnvqn",
+            model= self.model_name,
             messages=messages,
-            temperature=temperature,
             stream=True
         )
         response = ""
@@ -189,6 +193,9 @@ class Doubao:
                 continue
             response += chunk.choices[0].delta.content
         return response
+
+    def set_model_name(self, model_name):
+        self.model_name = model_name
 
 class DoubaoEmbedding(Doubao):
     def __init__(self):
@@ -200,6 +207,7 @@ class DoubaoEmbedding(Doubao):
             return resp
         except Exception as e:
             print(e)
+
 
 def main():
     start_time = time.time()
