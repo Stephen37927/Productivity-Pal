@@ -23,6 +23,9 @@ class BaseEnv:
         self._name: str = self.__class__.__name__
         self.timeout: int = 300
         working_dir = Config.get_parameter('working_dir')
+        if working_dir is None:
+            working_dir = os.getcwd()
+        print("working_dir: ", working_dir)
         if os.path.isabs(working_dir):
             self.working_dir = working_dir
         else:

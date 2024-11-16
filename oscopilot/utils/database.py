@@ -47,16 +47,8 @@ class Database:
     def insert(self, data, many = False):
         raise NotImplementedError
 
-    def find(self, query):
-        cursors = self.collection.find(query)
-        if cursors is None:
-            print("No logs found.")
-            return []
-        else:
-            logs = []
-            for cursor in cursors:
-                logs.append(cursor)
-            return logs
+    def find(self, query, limit = False):
+        raise NotImplementedError
 
 
 class DailyLogDatabase(Database):
@@ -80,6 +72,41 @@ class DailyLogDatabase(Database):
                 continue
         print(f"Inserted {insert_count} documents into the collection.")
 
+    def find(self, query, limit = -1):
+        cursors = self.collection.find(query)
+        cursors = cursors.limit(limit) if limit > 0 else cursors
+        response = []
+        for cursor in cursors:
+            response.append(cursor)
+        logs = []
+        for item in response:
+            log= {}
+            for key, value in item.items():
+                if key == "Name":
+                    log["Active:"] = value
+                elif key == "Type":
+                    log["Type:"] = value
+                elif key == "Start Time":
+                    try:
+                        date_obj = datetime.strptime(value, "%Y%m%d%H%M")
+                        log["Start Time:"] = date_obj.strftime("%Y-%m-%d %H:%M")
+                    except:
+                        pass
+                elif key == "End Time":
+                    try:
+                        date_obj = datetime.strptime(value, "%Y%m%d%H%M")
+                        log["End Time:"] = date_obj.strftime("%Y-%m-%d %H:%M")
+                    except:
+                        pass
+                elif key == "Date":
+                    try:
+                        date_obj = datetime.strptime(value, "%Y%m%d")
+                        log["Date:"] = date_obj.strftime("%Y-%m-%d")
+                    except:
+                        pass
+            logs.append(log)
+        return logs
+
 class HabitDatabase(Database):
     def __init__(self, collection_name):
         super().__init__()
@@ -89,7 +116,8 @@ class HabitDatabase(Database):
         insert_count = 0
         for item in data:
             i = i+1
-            text = "Activity: "+ str(item["Name"])+", "+"Type: "+ str(item["Type"])
+            for key, value in item.items():
+                text = key + ": " + str(value)
             embedding = self.get_embedding(text)
             document = {**item, "text": text, "embedding": embedding}
             try:
