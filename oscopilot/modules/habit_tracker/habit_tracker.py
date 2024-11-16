@@ -23,7 +23,8 @@ class HabitTracker():
     def save_habit(self, habit):
         habit_db = DailyLogDatabase("habits")
         habit_db.insert(habit)
-    def get_and_save_habit(self):
+
+    def get_habit_from_logs(self):
         logs = self.abstract_logs_in_previous_days(7)
 
 

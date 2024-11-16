@@ -11,7 +11,6 @@ import sys
 import os
 import re
 from dotenv import load_dotenv
-from oscopilot.utils.llms import DoubaoEmbedding
 load_dotenv(dotenv_path='.env', override=True)
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 EMBEDDING_API_KEY = os.getenv('EMBEDDING_API_KEY')

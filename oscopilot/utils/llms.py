@@ -190,6 +190,9 @@ class Doubao:
             response += chunk.choices[0].delta.content
         return response
 
+    def set_model(self, model_name):
+        self.model_name = model_name
+
 class DoubaoEmbedding(Doubao):
     def __init__(self):
         super().__init__()
@@ -200,6 +203,7 @@ class DoubaoEmbedding(Doubao):
             return resp
         except Exception as e:
             print(e)
+
 
 def main():
     start_time = time.time()
