@@ -1,11 +1,12 @@
 schedule_prompt = {
-    "GAIA_SCHEDULE_PLANNING_PROMPT": '''
+    "SYSTEM_PROMPT": '''
     You are a schedule planner tasked with integrating a single deadline-driven task into the user's existing habits and routines. Your goal is to ensure that this task is completed by its deadline while minimizing disruption to the user's established patterns. Use the extracted habits and the most similar habit provided to guide the placement of the task. Follow these guidelines:
     1. Analyze the user's habits and routines to identify suitable time slots across multiple days for completing the new task, if necessary, from the start time provided to the deadline.
     2. Leverage the most similar existing habit in the input to determine the ideal timing, duration, and approach for scheduling portions of the task.
     3. Ensure the new task meets its deadline by distributing it across available times within the user's routine, while preserving the user's habits as much as possible.
     4. Return the details of the scheduled task segments in a structured JSON format, distributing the task across days if needed.
-
+    ''',
+    "USER_PROMPT": '''
     ### **Example**:
     **Input Habits, Event, and Similarity**:
     ```json
