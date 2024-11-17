@@ -71,38 +71,85 @@ class Database:
         Returns:
         list: A list of matching documents.
         """
-
         try:
             # 将截止日期字符串转换为 datetime 对象
             deadline = datetime.strptime(deadline_str, "%Y%m%d%H%M")
             now = datetime.now()
 
-            # 计算从当前时刻到截止日期的持续时长（分钟）
+            # 计算从当前时间到截止日期的持续时长（分钟）
             duration = (deadline - now).total_seconds() / 60
 
-            # 查询数据库中的所有日志
-            logs = list(self.collection.find())
+            # 使用 MongoDB 聚合查询最大值和最小值
+            aggregation_pipeline = [
+                {
+                    "$addFields": {
+                        "Duration": {
+                            "$cond": [
+                                {"$and": [{"$ifNull": ["$Start Time", False]}, {"$ifNull": ["$End Time", False]}]},
+                                {
+                                    "$divide": [
+                                        {"$subtract": [
+                                            {"$dateFromString": {"dateString": "$End Time", "format": "%Y%m%d%H%M"}},
+                                            {"$dateFromString": {"dateString": "$Start Time", "format": "%Y%m%d%H%M"}}
+                                        ]},
+                                        60 * 1000  # 转换为分钟
+                                    ]
+                                },
+                                None
+                            ]
+                        }
+                    }
+                },
+                {"$match": {"Duration": {"$ne": None}}},  # 排除没有持续时间的记录
+                {
+                    "$group": {
+                        "_id": None,
+                        "max_duration": {"$max": "$Duration"},
+                        "min_duration": {"$min": "$Duration"},
+                    }
+                }
+            ]
 
-            # 找到持续时长与计算结果接近的记录（±5分钟）
+            duration_stats = list(self.collection.aggregate(aggregation_pipeline))
+            if not duration_stats:
+                print("数据库中没有有效的持续时长记录。")
+                return []
+
+            max_duration = duration_stats[0]["max_duration"]
+            min_duration = duration_stats[0]["min_duration"]
+
+            # 动态调整误差范围
+            if duration < min_duration:
+                tolerance = max(10, min_duration * 0.1)
+            elif duration > max_duration:
+                tolerance = max(10, max_duration * 0.1)
+            else:
+                tolerance = max(10, duration * 0.2)
+
+            # 匹配持续时长与用户输入接近的记录
             results = []
+            logs = self.collection.find()
             for log in logs:
-                # 检查记录是否包含 "Start Time" 和 "End Time"
-                if "Start Time" not in log or "End Time" not in log:
-                    continue  # 跳过不完整的记录
+                if "Start Time" in log and "End Time" in log:
+                    try:
+                        start_time = datetime.strptime(log["Start Time"], "%Y%m%d%H%M")
+                        end_time = datetime.strptime(log["End Time"], "%Y%m%d%H%M")
+                        log_duration = (end_time - start_time).total_seconds() / 60
 
-                try:
-                    start_time = datetime.strptime(log["Start Time"], "%Y%m%d%H%M")
-                    end_time = datetime.strptime(log["End Time"], "%Y%m%d%H%M")
-                    log_duration = (end_time - start_time).total_seconds() / 60
+                        # 打印调试信息
+                        print(
+                            f"记录 {log['Name']} 的时长: {log_duration:.2f} 分钟, 目标时长: {duration:.2f} 分钟, 容差范围: ±{tolerance:.2f} 分钟")
 
-                    # 判断持续时长是否在 ±60 分钟范围内
-                    if abs(log_duration - duration) <= 60:
-                        results.append(log)
-                except Exception as e:
-                    print(f"Error processing log: {log}, Error: {e}")
-                    continue
+                        # 判断持续时长是否在容许误差范围内
+                        if abs(log_duration - duration) <= tolerance:
+                            results.append(log)
+                    except Exception as e:
+                        print(f"Error processing log: {log}, Error: {e}")
+                else:
+                    print(f"跳过无效记录: {log}")
 
             return results
+
         except Exception as e:
             print(f"Error during find_by_deadline: {e}")
             return []
