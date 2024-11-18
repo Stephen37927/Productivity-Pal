@@ -1,5 +1,6 @@
 from datetime import datetime
 import subprocess
+import re
 
 
 # 输出脚本执行的返回
@@ -96,16 +97,17 @@ def get_completed_reminders(start_time, end_time):
     '''
     return applescript
 
-# 获取当前过期未完成的提醒事项
+# 获取当前一周内过期未完成的提醒事项
 def get_uncompleted_reminders():
     applescript = '''
     on get_overdue_incomplete_reminders()
         set theReminders to {}
         set currentDate to current date
+        set lastWeekDate to currentDate - (7 * days)
         tell application "Reminders"
             repeat with r in (reminders whose completed is false)
                 set dueDate to due date of r
-                if dueDate is not missing value and dueDate < currentDate then
+                if dueDate is not missing value and dueDate < currentDate and dueDate>=lastWeekDate then
                     set end of theReminders to name of r
                 end if
             end repeat
@@ -117,34 +119,74 @@ def get_uncompleted_reminders():
     '''
     return applescript
 
-def get_calendar_events():
-    script = """
-    tell application "Calendar"
-        set eventList to {}
-        repeat with c in calendars
-            set e to (events of c whose status is completed)
-            repeat with i in e
-                set end of eventList to summary of i
+def get_busy_times(endTime):
+    end_time = datetime.strptime(endTime, "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%d %H:%M:%S")
+    
+    applescript = f'''
+    on get_busy_times_before()
+        set busyTimes to {{}}
+        set startDate to current date
+        set endDate to date "{end_time}"
+        tell application "Calendar"
+            repeat with c in calendars
+                set eventsInRange to (events of c whose start date ≥ startDate and start date ≤ endDate)
+                repeat with e in eventsInRange
+                    set eventTitle to summary of e
+                    set eventStartDate to start date of e
+                    set eventEndDate to end date of e
+                    set end of busyTimes to {{eventTitle, eventStartDate as string, eventEndDate as string}}
+                end repeat
             end repeat
-        end repeat
-        return eventList
-    end tell
-    """
-    process = subprocess.run(['osascript', '-e', script], capture_output=True, text=True)
-    return process.stdout.strip().split(", ")
+        end tell
+        return busyTimes
+    end get_busy_times_before
 
+    get_busy_times_before()
+    '''
+    return applescript
 
+# 获取日历被占用的事件和时间
+def get_calendar_events(deadline):
+    # 举例 deadline="2024-11-30 23:59:59"
+    get_busy_times_script = get_busy_times(deadline)
+    mid=run_applescript(get_busy_times_script).split(", ")
+    events=[]
+    i=0
+    while i<len(mid)-2:
+        stDate,stDateTime = parse_custom_date_time(mid[i+1])
+        edDate,edDateTime = parse_custom_date_time(mid[i+2])
+        # 如果开始时间和结束时间相同，且结束时间是2359，那么这个事件是全天事件，不需要提醒
+        if stDate==edDate and int(edDateTime)-int(stDateTime)==2359:
+            i+=3
+            continue
+        duration=[stDate,stDateTime,edDate,edDateTime]
+        events.append({mid[i]:duration})
+        i+=3
+    return events
 
+def parse_custom_date_time(date_time_str):
+    # 提取日期和时间部分
+    match = re.match(r"(\d{4})年(\d{1,2})月(\d{1,2})日.*(\d{2}:\d{2}:\d{2})", date_time_str)
+    if not match:
+        raise ValueError("wrong date time format")
+    
+    year, month, day, time = match.groups()
+    date_formatted = f"{year}{int(month):02d}{int(day):02d}"
+    datetime_str = f"{date_formatted}{time.replace(':', '')[:4]}"
+    
+    return date_formatted, datetime_str
 
-eventName = "会议"
-eventDate = "2024-11-20"
-eventStartTime = "10:00 AM"
-eventEndTime = "11:00 AM"
-reminder_script = create_reminder_script(eventName, eventDate, eventStartTime)
-event_script = create_event_script(eventName, eventDate, eventStartTime, eventEndTime)
-get_reminder_script=get_completed_reminders("2020-11-01", "2024-11-30")
-get_uncompleted_reminders_script = get_uncompleted_reminders()
-#run_applescript(reminder_script)
-# run_applescript(event_script)
-print(run_applescript(get_reminder_script).split(", "))
-print(run_applescript(get_uncompleted_reminders_script).split(", "))
+if __name__ == "__main__":
+    eventName = "会议"
+    eventDate = "2024-11-20"
+    eventStartTime = "10:00 AM"
+    eventEndTime = "11:00 AM"
+    reminder_script = create_reminder_script(eventName, eventDate, eventStartTime)
+    event_script = create_event_script(eventName, eventDate, eventStartTime, eventEndTime)
+    get_reminder_script=get_completed_reminders("2020-11-01", "2024-11-30")
+    get_uncompleted_reminders_script = get_uncompleted_reminders()
+    #run_applescript(reminder_script)
+    # run_applescript(event_script)
+    # print(run_applescript(get_reminder_script).split(", "))
+    # print(run_applescript(get_uncompleted_reminders_script).split(", "))
+    print(get_calendar_events("2024-11-30 23:59:59"))
