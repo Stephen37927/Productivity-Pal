@@ -11,9 +11,9 @@ class TestScheduleMakerIntegration(unittest.TestCase):
 
         # 输入一个实际的 deadline
         deadline = "202411201200"
-
+        deadline_name = "Financial Fraud Presentation"
         # 调用 create_schedule 方法
-        schedule = schedule_maker.create_schedule(deadline)
+        schedule = schedule_maker.create_schedule(deadline, deadline_name)
 
         # 打印生成的计划
         print("Generated Schedule:", schedule)
