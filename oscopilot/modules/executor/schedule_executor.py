@@ -1,17 +1,25 @@
-from datetime import datetime
+import json
 import subprocess
+from datetime import datetime
+from oscopilot.modules.schedule_maker.schedule_maker import ScheduleMaker
 
 
 def run_applescript(applescript):
+    """
+    运行 AppleScript 并捕获输出或错误。
+    """
     process = subprocess.Popen(['osascript', '-e', applescript], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output, error = process.communicate()
     if process.returncode == 0:
-        print("操作成功!")
+        print(f"操作成功: {output.decode().strip()}")
     else:
-        print(f"操作失败: {error.decode()}")
+        print(f"操作失败: {error.decode().strip()}")
 
 
 def create_reminder_script(title, date, time):
+    """
+    创建提醒的 AppleScript。
+    """
     date_obj = datetime.strptime(date, "%Y-%m-%d")
     # formatted_date = date_obj.strftime("%A, %B %d, %Y")
     applescript = f'''
@@ -28,12 +36,14 @@ def create_reminder_script(title, date, time):
 
 
 def create_event_script(event_title, event_date, event_start_time, event_end_time):
+    """
+    创建日历事件的 AppleScript。
+    """
     date_obj = datetime.strptime(event_date, "%Y-%m-%d")
     # 获取年、月、日
     year = date_obj.strftime("%Y")
     month = date_obj.strftime("%m")
     day = date_obj.strftime("%d")
-
     applescript = f'''
     on createEvent(eventTitle, eventYear, eventMonth, eventDay, eventStartTime, eventEndTime)
         tell application "Calendar"
@@ -71,16 +81,53 @@ def create_event_script(event_title, event_date, event_start_time, event_end_tim
     return applescript
 
 
-# combine the two scripts functions
-def add_event(event_title, event_date, event_start_time, event_end_time):
-    reminder_script = create_reminder_script(event_title, event_date, event_start_time)
-    event_script = create_event_script(event_title, event_date, event_start_time, event_end_time)
-    run_applescript(reminder_script)
-    run_applescript(event_script)
+def execute_schedule_with_applescript(schedule):
+    """
+    根据生成的计划，使用 AppleScript 创建日历事件和提醒。
+    """
+    try:
+        # 遍历计划中的任务
+        for task in schedule:
+            title = task["Task"]
+            date = task["Date"]
+            start_time = task["StartTime"]
+            end_time = task["EndTime"]
+
+            # 创建提醒和事件的 AppleScript
+            reminder_script = create_reminder_script(title, date, start_time)
+            event_script = create_event_script(title, date, start_time, end_time)
+
+            # 执行 AppleScript
+            run_applescript(reminder_script)
+            run_applescript(event_script)
+
+    except Exception as e:
+        print(f"执行计划时出错: {e}")
 
 
-eventName = "会议"
-eventDate = "2024-11-20"
-eventStartTime = "10:00 AM"
-eventEndTime = "11:00 AM"
-add_event(eventName, eventDate, eventStartTime, eventEndTime)
+def main():
+    schedule_maker = ScheduleMaker()
+    deadline = "202411201200"
+    deadline_name = "Cleaning Toilet"
+
+    schedule_json = schedule_maker.create_schedule(deadline, deadline_name)
+
+    # 将计划解析为 JSON 对象
+    try:
+        if not schedule_json:
+            print("Received empty response.")
+            return
+        print(f"Raw response: {schedule_json}")
+        schedule_json = schedule_json.strip()
+        schedule = json.loads(schedule_json)
+        print("生成的计划:", json.dumps(schedule, indent=2))
+
+        execute_schedule_with_applescript(schedule)
+
+    except json.JSONDecodeError as e:
+        print(f"解析计划时出错: {e}")
+        print(f"Invalid JSON content: {schedule_json}")
+
+
+if __name__ == "__main__":
+    main()

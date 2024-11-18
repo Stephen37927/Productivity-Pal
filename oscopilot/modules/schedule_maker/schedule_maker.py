@@ -63,11 +63,14 @@ class ScheduleMaker(BaseModule):
             )
 
             # Step 4: 调用模型生成计划
+            self.llm.set_model_name(MODEL_NAME)
             response = send_chat_prompts(schedule_prompt["USER_PROMPT"], user_prompt, self.llm, prefix="Schedule")
             return response
         except Exception as e:
             print(f"Error creating schedule: {e}")
             return None
+
+
 
 if __name__ == '__main__':
     schedule_maker = ScheduleMaker()
