@@ -110,3 +110,14 @@ class BaseModule:
 
         # Return the list of matched task descriptions.
         return data_list
+
+    def transfer_data_to_prompt(self, data_list):
+        results = ""
+        i = 1
+        for data in data_list:
+            result = str(i) + ". "
+            for key, value in data.items():
+                result += key + str(value) + "; "
+            i += 1
+            results += result + "\n"
+        return results
