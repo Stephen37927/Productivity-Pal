@@ -61,6 +61,99 @@ class Database:
                 continue
         print(f"Inserted {insert_count} documents into the collection.")
 
+    def find(self, query, limit = -1):
+        cursors = self.collection.find(query)
+        cursors = cursors.limit(limit) if limit > 0 else cursors
+        response = []
+        for cursor in cursors:
+            response.append(cursor)
+        logs = []
+        for item in response:
+            log = {}
+            for key, value in item.items():
+                if key != "text" or key != "embedding":
+                    log[key] = value
+            logs.append(log)
+        return logs
+
+
+class DailyLogDatabase(Database):
+    def __init__(self, collection_name):
+        super().__init__()
+        self.collection = self.db[collection_name]
+
+    def insert(self, data):
+        i = 0
+        insert_count = 0
+        for item in data:
+            i = i+1
+            text = "Activity: "+ str(item["Name"])+", "+"Type: "+ str(item["Type"])
+            embedding = self.get_embedding(text)
+            document = {**item, "text": text, "embedding": embedding}
+            try:
+                self.collection.insert_one(document)
+                insert_count = insert_count + 1
+            except Exception as e:
+                print(f"Error inserting document {i}: {e}")
+                continue
+        print(f"Inserted {insert_count} documents into the collection.")
+
+    # def find(self, query, limit = -1):
+    #     cursors = self.collection.find(query)
+    #     cursors = cursors.limit(limit) if limit > 0 else cursors
+    #     response = []
+    #     for cursor in cursors:
+    #         response.append(cursor)
+    #     logs = []
+    #     for item in response:
+    #         log= {}
+    #         for key, value in item.items():
+    #             if key == "Name":
+    #                 log["Active"] = value
+    #             elif key == "Type":
+    #                 log["Type"] = value
+    #             elif key == "Start Time":
+    #                 try:
+    #                     date_obj = datetime.strptime(value, "%Y%m%d%H%M")
+    #                     log["Start Time"] = date_obj.strftime("%Y-%m-%d %H:%M")
+    #                 except:
+    #                     pass
+    #             elif key == "End Time":
+    #                 try:
+    #                     date_obj = datetime.strptime(value, "%Y%m%d%H%M")
+    #                     log["End Time"] = date_obj.strftime("%Y-%m-%d %H:%M")
+    #                 except:
+    #                     pass
+    #             elif key == "Date":
+    #                 try:
+    #                     date_obj = datetime.strptime(value, "%Y%m%d")
+    #                     log["Date"] = date_obj.strftime("%Y-%m-%d")
+    #                 except:
+    #                     pass
+    #         logs.append(log)
+    #     return logs
+
+class HabitDatabase(Database):
+    def __init__(self, collection_name):
+        super().__init__()
+        self.collection = self.db[collection_name]
+    def insert(self, data):
+        i = 0
+        insert_count = 0
+        for item in data:
+            i = i+1
+            for key, value in item.items():
+                text = key + ": " + str(value)
+            embedding = self.get_embedding(text)
+            document = {**item, "text": text, "embedding": embedding}
+            try:
+                self.collection.insert_one(document)
+                insert_count = insert_count + 1
+            except Exception as e:
+                print(f"Error inserting document {i}: {e}")
+                continue
+        print(f"Inserted {insert_count} documents into the collection.")
+
     def find_by_deadline(self, deadline_str):
         """
         Finds documents with a deadline matching or earlier than the specified deadline.
@@ -154,18 +247,21 @@ class Database:
             print(f"Error during find_by_deadline: {e}")
             return []
 
-
-class DailyLogDatabase(Database):
-    def __init__(self, collection_name):
+class DeadlineDatabase(Database):
+    def __init__(self,collection_name):
         super().__init__()
         self.collection = self.db[collection_name]
-
-    def insert(self, data):
+    def insert(self,data):
         i = 0
         insert_count = 0
         for item in data:
             i = i+1
-            text = "Activity: "+ str(item["Name"])+", "+"Type: "+ str(item["Type"])
+            text = ""
+            for key, value in item.items():
+                if key == "Title":
+                    text = text + "Title: " + value + "; "
+                elif key == "Description":
+                    text = text + "Description: " + value + "; "
             embedding = self.get_embedding(text)
             document = {**item, "text": text, "embedding": embedding}
             try:
@@ -184,92 +280,77 @@ class DailyLogDatabase(Database):
             response.append(cursor)
         logs = []
         for item in response:
-            log= {}
+            log = {}
             for key, value in item.items():
-                if key == "Name":
-                    log["Active:"] = value
-                elif key == "Type":
-                    log["Type:"] = value
-                elif key == "Start Time":
+                if key == "Title":
+                    log["Title"] = value
+                elif key == "Description":
+                    log["Description"] = value
+                elif key == "Deadline":
                     try:
                         date_obj = datetime.strptime(value, "%Y%m%d%H%M")
-                        log["Start Time:"] = date_obj.strftime("%Y-%m-%d %H:%M")
+                        log["Deadline"] = date_obj.strftime("%Y-%m-%d %H:%M")
                     except:
                         pass
-                elif key == "End Time":
+                elif key == "Status":
                     try:
-                        date_obj = datetime.strptime(value, "%Y%m%d%H%M")
-                        log["End Time:"] = date_obj.strftime("%Y-%m-%d %H:%M")
-                    except:
-                        pass
-                elif key == "Date":
-                    try:
-                        date_obj = datetime.strptime(value, "%Y%m%d")
-                        log["Date:"] = date_obj.strftime("%Y-%m-%d")
+                        log["Status"] = value
                     except:
                         pass
             logs.append(log)
         return logs
 
-class HabitDatabase(Database):
-    def __init__(self, collection_name):
-        super().__init__()
-        self.collection = self.db[collection_name]
-    def insert(self, data):
-        i = 0
-        insert_count = 0
-        for item in data:
-            i = i+1
-            for key, value in item.items():
-                text = key + ": " + str(value)
-            embedding = self.get_embedding(text)
-            document = {**item, "text": text, "embedding": embedding}
-            try:
-                self.collection.insert_one(document)
-                insert_count = insert_count + 1
-            except Exception as e:
-                print(f"Error inserting document {i}: {e}")
-                continue
-        print(f"Inserted {insert_count} documents into the collection.")
+
+
+
+
+
 
 if __name__ == '__main__':
-    data = df = pd.read_csv("./data/datalog1.csv")
-    data = df.to_dict(orient='records')
-    input_data = []
-    for item in data:
-        input = {}
-        for key, value in item.items():
-            starttime = 0
-            endtime = 0
-            if key == "Name":
-                input["Name"] = value
-            if key == "类型":
-                input["Type"] = value
-            if key == "开始时间":
-                try:
-                    date_obj = datetime.strptime(value, "%B %d, %Y %I:%M %p (GMT+8)")
-                    date_obj += timedelta(weeks=7)
-                    input["Start Time"] = date_obj.strftime("%Y%m%d%H%M")
-                    starttime = int(input["Start Time"])
-                except:
-                    pass
-            if key == "结束时间":
-                try:
-                    date_obj = datetime.strptime(value, "%B %d, %Y %I:%M %p (GMT+8)")
-                    date_obj += timedelta(weeks=7)
-                    input["End Time"] = date_obj.strftime("%Y%m%d%H%M")
-                    endtime = int(input["End Time"])
-                    int["Duration"] = endtime - starttime
-                except:
-                    pass
-            if key == "日期":
-                try:
-                    date_obj = datetime.strptime(value, "%Y/%m/%d")
-                    date_obj += timedelta(weeks=7)
-                    input["Date"] = date_obj.strftime("%Y%m%d")
-                except:
-                    pass
-        input_data.append(input)
+    deadlines = [
+        {
+        "Title": "OS-CoPilot Demo Presentation",
+        "Description": "Prepare a demo presentation for OS-CoPilot. Include coding, presentation slides, and a live demo.",
+        "Deadline": "202411251900",
+        "Status": 10
+        },
+        {
+            "Title": "Data Mining Assignment2",
+            "Description": "3 subtasks: 1. Evaluate car sales data via Weka. 2. Assoication rule mining. 3. Clustering.",
+            "Deadline": "202411272359",
+            "Status": 00
+        },
+        {
+            "Title": "CV Reviewer",
+            "Description": "Review the CVs of the applicants for the Data Scientist position.",
+            "Deadline": "202411301700",
+            "Status": 00
+        },
+        {
+            "Title": "Weekend Getaway Planning",
+            "Description": "Plan and finalize the itinerary for a weekend getaway with friends. Book transportation and accommodation.",
+            "Deadline": "202412102000",
+            "Status": 00
+        },
+        {
+            "Title": "Team Meeting Presentation",
+            "Description": "Prepare a brief presentation for the team's weekly sync. Include project updates and upcoming plans.",
+            "Deadline": "202411201000",
+            "Status": 10
+        },
+        {
+            "Title": "Christmas Holiday Planning",
+            "Description": "Plan the Christmas holiday activities, including gift shopping, travel arrangements, and dinner preparation.",
+            "Deadline": "202412201800",
+            "Status": 00
+        },
+        {
+            "Title": "Deep Learning Course Final Exam",
+            "Description": "The final examination on deep learning, including basic information, CNN, GNN, and RNN.",
+            "Deadline": "202412141830",
+            "Status": 00
+        }
+    ]
 
-    log_db = DailyLogDatabase("daily_logs")
-    log_db.insert(input_data)
+    deadlines_db = DeadlineDatabase("deadlines")
+    deadlines_db.insert(deadlines)

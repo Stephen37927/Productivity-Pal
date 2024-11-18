@@ -6,13 +6,16 @@ import requests
 import json
 from dotenv import load_dotenv
 from openai import base_url
+from pymongo import MongoClient
+from sentence_transformers import SentenceTransformer
 from volcenginesdkarkruntime import Ark
 
 load_dotenv(override=True)
-MODEL_NAME = os.getenv('DEFAULT_ENDPOINT')
+
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 OPENAI_ORGANIZATION = os.getenv('OPENAI_ORGANIZATION')
 BASE_URL = os.getenv('OPENAI_BASE_URL')
+CONNECTION_STRING = os.getenv('CONNECTION_STRING')
 
 # add
 MODEL_SERVER = os.getenv('MODEL_SERVER')
@@ -38,7 +41,7 @@ class OpenAI:
         """
         Initializes the OpenAI object with the given configuration.
         """
-
+        MODEL_NAME = os.getenv('MODEL_NAME')
         self.model_name = MODEL_NAME
 
     def chat(self, messages, temperature=0, prefix=""):
@@ -94,7 +97,7 @@ class OLLAMA:
         """
         Initializes the OpenAI object with the given configuration.
         """
-
+        MODEL_NAME = os.getenv('MODEL_NAME')
         self.model_name = MODEL_NAME
 
         self.llama_serve = MODEL_SERVER + "/api/chat"
@@ -160,7 +163,7 @@ class Doubao:
         """
         Initializes the Doubao object with the given configuration.
         """
-
+        MODEL_NAME = os.getenv('DEFAULT_ENDPOINT')
         self.model_name = MODEL_NAME
         self.base_url = BASE_URL
         self.api_key = OPENAI_API_KEY
