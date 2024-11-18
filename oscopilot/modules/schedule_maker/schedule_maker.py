@@ -14,7 +14,7 @@ MODEL_NAME = os.getenv('CALENDAR_PLAN_ENDPOINT')
 class ScheduleMaker(BaseModule):
     def __init__(self):
         super().__init__()
-        self.habit_tracker = HabitTracker()  # 确保初始化 habit_tracker
+        self.habit_tracker = HabitTracker()
 
     def fetch_logs_by_deadline(self, deadline_str, days=7, limit=-1):
         """
@@ -42,7 +42,7 @@ class ScheduleMaker(BaseModule):
             print(f"Error fetching habits: {e}")
             return []
 
-    def create_schedule(self, deadline):
+    def create_schedule(self, deadline, deadline_name):
         try:
             # Step 1: 获取 Habit 数据
             habits = self.fetch_habits()
@@ -53,6 +53,7 @@ class ScheduleMaker(BaseModule):
             # Step 3: 构建提示内容
             user_prompt = (
                 schedule_prompt["USER_PROMPT"]
+                + f"\n**Deadline Name:** {deadline_name}"
                 + "\n**Deadline:** "
                 + deadline
                 + "\n**Logs:** "
@@ -71,5 +72,6 @@ class ScheduleMaker(BaseModule):
 if __name__ == '__main__':
     schedule_maker = ScheduleMaker()
     deadline = "202411201200"  # 示例 Deadline
-    schedule = schedule_maker.create_schedule(deadline)
+    deadline_name = "Financial Fraud Presentation"
+    schedule = schedule_maker.create_schedule(deadline, deadline_name)
     print("生成的计划表:\n", schedule)

@@ -31,7 +31,7 @@ schedule_prompt = {
         ],
         "Event": {
             "Activity": "Prepare presentation slides",
-            "Deadline": "2023-11-20 5:00 pm"
+            "Deadline": "2023-11-20 5:00 PM"
         },
         "MostSimilarHabit": {
             "Name": "Sleeping",
@@ -47,10 +47,10 @@ schedule_prompt = {
     ```json
     [
         {
-            "Task": "Prepare presentation slides - Part 1",
+            "Task": "Prepare presentation slides - Group Discussion",
             "Date": "2023-11-17",
-            "StartTime": "2:00 pm",
-            "EndTime": "4:00 pm",
+            "StartTime": "2:00 PM",
+            "EndTime": "4:00 PM",
             "ReferenceHabit": {
                 "Activity": "Studying",
                 "Pattern": "Afternoon focus",
@@ -58,10 +58,10 @@ schedule_prompt = {
             }
         },
         {
-            "Task": "Prepare presentation slides - Part 2",
+            "Task": "Prepare presentation slides - Material Collection",
             "Date": "2023-11-18",
-            "StartTime": "10:00 am",
-            "EndTime": "12:00 pm",
+            "StartTime": "10:00 AM",
+            "EndTime": "12:00 AM",
             "ReferenceHabit": {
                 "Activity": "Studying",
                 "Pattern": "Afternoon focus",
@@ -69,10 +69,32 @@ schedule_prompt = {
             }
         },
         {
-            "Task": "Prepare presentation slides - Final Review",
+            "Task": "Prepare presentation slides - Sort out Material",
             "Date": "2023-11-20",
-            "StartTime": "1:00 pm",
-            "EndTime": "3:00 pm",
+            "StartTime": "1:00 PM",
+            "EndTime": "3:00 PM",
+            "ReferenceHabit": {
+                "Activity": "Studying",
+                "Pattern": "Afternoon focus",
+                "SimilarityReason": "Final review session before the deadline."
+            }
+        },
+        {
+            "Task": "Prepare presentation slides - Make PowerPoint",
+            "Date": "2023-11-20",
+            "StartTime": "1:00 PM",
+            "EndTime": "3:00 PM",
+            "ReferenceHabit": {
+                "Activity": "Studying",
+                "Pattern": "Afternoon focus",
+                "SimilarityReason": "Final review session before the deadline."
+            }
+        },
+        {
+            "Task": "Prepare presentation slides - Final Presentation",
+            "Date": "2023-11-20",
+            "StartTime": "1:00 PM",
+            "EndTime": "3:00 PM",
             "ReferenceHabit": {
                 "Activity": "Studying",
                 "Pattern": "Afternoon focus",
