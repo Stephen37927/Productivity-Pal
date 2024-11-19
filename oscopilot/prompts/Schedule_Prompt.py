@@ -5,9 +5,11 @@ schedule_prompt = {
     2. Leverage the most similar existing habit in the input to determine the ideal timing, duration, and approach for scheduling portions of the task.
     3. Ensure the new task meets its deadline by distributing it across available times within the user's routine, while preserving the user's habits as much as possible.
     4. Return the details of the scheduled task segments in a structured JSON format, distributing the task across days if needed.
+    5. Notice the time required for different tasks, broken down according to the volume of the task volume
     ''',
     "USER_PROMPT": '''
     ### **Example**:
+    Notice the time required for different tasks, broken down according to the volume of the task volume
     **Input Habits, Event, and Similarity**:
     {
         "Habits": [
@@ -46,8 +48,8 @@ schedule_prompt = {
         {
             "Task": "Prepare presentation slides - Group Discussion",
             "Date": "2023-11-17",
-            "StartTime": "2:00 PM",
-            "EndTime": "4:00 PM",
+            "StartTime": "02:00 PM",
+            "EndTime": "04:00 PM",
             "ReferenceHabit": {
                 "Activity": "Studying",
                 "Pattern": "Afternoon focus",
