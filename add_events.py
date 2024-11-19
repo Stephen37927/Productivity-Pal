@@ -16,7 +16,7 @@ def run_applescript(applescript):
 
 def create_reminder_script(title, date, time):
     date_obj = datetime.strptime(date, "%Y-%m-%d")
-    formatted_date = date_obj.strftime("%A, %B %d, %Y")
+    # formatted_date = date_obj.strftime("%A, %B %d, %Y")
     applescript = f'''
     on createReminder(reminderTitle, reminderDate, reminderTime)
         tell application "Reminders"
@@ -75,7 +75,7 @@ def create_event_script(event_title, event_date, event_start_time, event_end_tim
 
 # combine the two scripts functions
 def add_event(event_title, event_date, event_start_time, event_end_time):
-    reminder_script = create_reminder_script(event_title, event_date, event_start_time.split(' ')[0])
+    reminder_script = create_reminder_script(event_title, event_date, event_start_time)
     event_script = create_event_script(event_title, event_date, event_start_time, event_end_time)
     run_applescript(reminder_script)
     run_applescript(event_script)
