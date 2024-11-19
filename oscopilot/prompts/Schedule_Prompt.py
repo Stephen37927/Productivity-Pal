@@ -11,7 +11,6 @@ schedule_prompt = {
     ### **Example**:
     Notice the time required for different tasks, broken down according to the volume of the task volume
     **Input Habits, Event, and Similarity**:
-    ```json
     {
         "Habits": [
             {
@@ -43,7 +42,6 @@ schedule_prompt = {
             "Date": "2024/09/28"
         }
     }
-    ```
 
     **Output**:
     [
