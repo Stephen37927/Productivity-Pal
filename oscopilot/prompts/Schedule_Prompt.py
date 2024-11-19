@@ -9,7 +9,6 @@ schedule_prompt = {
     "USER_PROMPT": '''
     ### **Example**:
     **Input Habits, Event, and Similarity**:
-    ```json
     {
         "Habits": [
             {
@@ -41,10 +40,8 @@ schedule_prompt = {
             "Date": "2024/09/28"
         }
     }
-    ```
 
     **Output**:
-    ```json
     [
         {
             "Task": "Prepare presentation slides - Group Discussion",

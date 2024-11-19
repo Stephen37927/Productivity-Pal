@@ -203,3 +203,5 @@ courses/
 working_dir/agents
 .env
 data
+translator.py
+split_file.py

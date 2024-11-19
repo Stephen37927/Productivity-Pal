@@ -9,9 +9,9 @@ habit_prompt = {
     "USER_PROMPT": '''
     Here is an example:
     **Activities**:
-    1. Active: 玩手机; Type: 社交媒体; Start Time: 2024-09-28 8:47; Date: 2024-09-28;
-    2. Active: 学习; Type: 学习; Start Time: 2024-09-27 16:01; End Time: 2024-09-27 17:20; Date: 2024-09-27;
-    3. Active: 吃饭; Type: 日常, Start Time: 2024-09-27 12:44; End Time: 2024-09-27 13:15, Date: 2024-09-27;
+    1. Active: Swipe the phone; Type: Meaningless; Start Time: 2024-09-28 8:47; Date: 2024-09-28;
+    2. Active: Leetcode; Type: Study; Start Time: 2024-09-27 16:01; End Time: 2024-09-27 17:20; Date: 2024-09-27;
+    3. Active: Hava a meal; Type: Daily, Start Time: 2024-09-27 12:44; End Time: 2024-09-27 13:15, Date: 2024-09-27;
     **Answer**:
     {
          "Habits": [

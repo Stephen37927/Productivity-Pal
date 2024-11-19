@@ -1,5 +1,6 @@
 from cmath import isnan
 
+from matplotlib.backend_tools import cursors
 # from matplotlib.backend_tools import cursors
 from pymongo import MongoClient, ASCENDING
 from dotenv import load_dotenv
@@ -7,7 +8,8 @@ import os
 from sentence_transformers import SentenceTransformer
 import pandas as pd
 from datetime import datetime,timedelta
-from sqlalchemy.dialects.mysql import insert
+import json
+
 
 load_dotenv(override=True)
 MODEL_NAME = os.getenv('MODEL_NAME')
@@ -44,7 +46,7 @@ class Database:
             print.error(f"Error fetching collection {collection_name}: {e}")
             raise
 
-    def insert(self, data):
+    def insert(self, data,user_id):
         i = 0
         insert_count = 0
         for item in data:
@@ -52,7 +54,7 @@ class Database:
             for key, value in item.items():
                 text = key + ": " + str(value)
             embedding = self.get_embedding(text)
-            document = {**item, "text": text, "embedding": embedding}
+            document = {**item,"user_id":user_id, "text": text, "embedding": embedding}
             try:
                 self.collection.insert_one(document)
                 insert_count = insert_count + 1
@@ -61,8 +63,8 @@ class Database:
                 continue
         print(f"Inserted {insert_count} documents into the collection.")
 
-    def find(self, query, limit = -1):
-        cursors = self.collection.find(query)
+    def find(self, pipeline, task="", user_id=1, limit=-1):
+        cursors = self.collection.find(pipeline)
         cursors = cursors.limit(limit) if limit > 0 else cursors
         response = []
         for cursor in cursors:
@@ -76,20 +78,40 @@ class Database:
             logs.append(log)
         return logs
 
+    def timestamp_to_date(self, timestamp, output_date_format):
+        date_obj = datetime.fromtimestamp(timestamp)
+        return date_obj.strftime(output_date_format)
+
+    def date_to_timestamp(self, date_str, input_date_format):
+        date_obj = datetime.strptime(date_str, input_date_format)
+        return date_obj.timestamp()
 
 class DailyLogDatabase(Database):
     def __init__(self, collection_name):
         super().__init__()
         self.collection = self.db[collection_name]
 
-    def insert(self, data):
+    def insert(self, data, user_id):
         i = 0
         insert_count = 0
         for item in data:
             i = i+1
-            text = "Activity: "+ str(item["Name"])+", "+"Type: "+ str(item["Type"])
+            text = ""
+            if "Active" in item:
+                text = text+ "Activity: "+ str(item["Active"])+", "
+            if "Type" in item:
+                text = text + "Type: "+ str(item["Type"])+", "
+            # if "Start Time" in item:
+            #     one_week_seconds = 7 * 24 * 60 * 60  # 7天的秒数
+            #     item["Start Time"] = int(item["Start Time"]) + one_week_seconds
+            # if "End Time" in item:
+            #     one_week_seconds = 7 * 24 * 60 * 60
+            #     item["End Time"] = int(item["End Time"]) + one_week_seconds
+            # if "Date" in item:
+            #     one_week_seconds = 7 * 24 * 60 * 60
+            #     item["Date"] = int(item["Date"]) + one_week_seconds
             embedding = self.get_embedding(text)
-            document = {**item, "text": text, "embedding": embedding}
+            document = {**item,"user_id": user_id, "text": text, "embedding": embedding}
             try:
                 self.collection.insert_one(document)
                 insert_count = insert_count + 1
@@ -98,46 +120,42 @@ class DailyLogDatabase(Database):
                 continue
         print(f"Inserted {insert_count} documents into the collection.")
 
-    # def find(self, query, limit = -1):
-    #     cursors = self.collection.find(query)
-    #     cursors = cursors.limit(limit) if limit > 0 else cursors
-    #     response = []
-    #     for cursor in cursors:
-    #         response.append(cursor)
-    #     logs = []
-    #     for item in response:
-    #         log= {}
-    #         for key, value in item.items():
-    #             if key == "Name":
-    #                 log["Active"] = value
-    #             elif key == "Type":
-    #                 log["Type"] = value
-    #             elif key == "Start Time":
-    #                 try:
-    #                     date_obj = datetime.strptime(value, "%Y%m%d%H%M")
-    #                     log["Start Time"] = date_obj.strftime("%Y-%m-%d %H:%M")
-    #                 except:
-    #                     pass
-    #             elif key == "End Time":
-    #                 try:
-    #                     date_obj = datetime.strptime(value, "%Y%m%d%H%M")
-    #                     log["End Time"] = date_obj.strftime("%Y-%m-%d %H:%M")
-    #                 except:
-    #                     pass
-    #             elif key == "Date":
-    #                 try:
-    #                     date_obj = datetime.strptime(value, "%Y%m%d")
-    #                     log["Date"] = date_obj.strftime("%Y-%m-%d")
-    #                 except:
-    #                     pass
-    #         logs.append(log)
-    #     return logs
+    def find(self, pipeline):
+        cursors = self.collection.aggregate(pipeline)
+        response = []
+        for cursor in cursors:
+            response.append(cursor)
+        logs = []
+        for item in response:
+            log= {}
+            for key, value in item.items():
+                if key == "Active":
+                    log["Active"] = value
+                elif key == "Type":
+                    log["Type"] = value
+                elif key == "Start Time":
+                    try:
+                        log["Start Time"] = self.timestamp_to_date(value, "%Y-%m-%d %H:%M")
+                    except:
+                        pass
+                elif key == "End Time":
+                    try:
+                        log["End Time"] = self.timestamp_to_date(value, "%Y-%m-%d %H:%M")
+                    except:
+                        pass
+                elif key == "Date":
+                    try:
+                        log["Date"] = self.timestamp_to_date(value, "%Y-%m-%d")
+                    except:
+                        pass
+            logs.append(log)
+        return logs
 
 class HabitDatabase(Database):
     def __init__(self, collection_name):
         super().__init__()
         self.collection = self.db[collection_name]
-    def insert(self, data):
+    def insert(self, data, user_id):
         i = 0
         insert_count = 0
         for item in data:
@@ -145,7 +163,7 @@ class HabitDatabase(Database):
             for key, value in item.items():
                 text = key + ": " + str(value)
             embedding = self.get_embedding(text)
-            document = {**item, "text": text, "embedding": embedding}
+            document = {**item, "user_id":user_id, "text": text, "embedding": embedding}
             try:
                 self.collection.insert_one(document)
                 insert_count = insert_count + 1
@@ -251,19 +269,23 @@ class DeadlineDatabase(Database):
     def __init__(self,collection_name):
         super().__init__()
         self.collection = self.db[collection_name]
-    def insert(self,data):
+    def insert(self,data,user_id):
         i = 0
         insert_count = 0
         for item in data:
             i = i+1
             text = ""
+            if "Subtasks" not in item:
+                item["Subtasks"] = []
             for key, value in item.items():
                 if key == "Title":
                     text = text + "Title: " + value + "; "
                 elif key == "Description":
                     text = text + "Description: " + value + "; "
+                elif key == "Deadline":
+                    item["Deadline"] = self.date_to_timestamp(value, "%Y%m%d%H%M")
             embedding = self.get_embedding(text)
-            document = {**item, "text": text, "embedding": embedding}
+            document = {**item, "user_id": user_id, "text": text, "embedding": embedding}
             try:
                 self.collection.insert_one(document)
                 insert_count = insert_count + 1
@@ -272,8 +294,8 @@ class DeadlineDatabase(Database):
                 continue
         print(f"Inserted {insert_count} documents into the collection.")
 
-    def find(self, query, limit = -1):
-        cursors = self.collection.find(query)
+    def find(self, pipeline, task="", user_id=1, limit=-1):
+        cursors = self.collection.find(pipeline)
         cursors = cursors.limit(limit) if limit > 0 else cursors
         response = []
         for cursor in cursors:
@@ -352,5 +374,13 @@ if __name__ == '__main__':
         }
     ]
 
-    deadlines_db = DeadlineDatabase("deadlines")
-    deadlines_db.insert(deadlines)
+    deadlines_db = DeadlineDatabase("Deadlines")
+    deadlines_db.insert(deadlines, user_id=1)
+
+    # data_list = []
+    # with open("output_data1.jsonl", 'r', encoding='utf-8') as f:
+    #     for line in f:
+    #         # 每一行都是一个 JSON 对象
+    #         data_list.append(json.loads(line.strip()))
+    # daily_log_db = DailyLogDatabase("Daily_logs")
+    # daily_log_db.insert(data_list, user_id=1)
