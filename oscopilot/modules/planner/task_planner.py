@@ -39,16 +39,16 @@ class TaskPlanner(BaseModule):
             print(f"Error creating schedule: {e}")
             return None
     
-    def schedule_task(self,user_id,task_dict,deadline):
+    def schedule_task(self,user_id,task_dict,schedule_time,deadline):
         try:
             # Step1: 获取日历中deadline前存在的事件
             events=self.appleScript.get_calendar_events(deadline)
             
             # Step2: 获取用户最近7天的习惯
-            habits=[]
+            # TODO lz 举例 
+            habits={}
             for key in task_dict:
-                habit=self.habit_tracker.get_habit_from_logs(user_id,days=7, top_k=5)
-            habits.append(habit)
+                habits[key]=self.habit_tracker.get_habit_from_logs(user_id,days=-1, top_k=5, task=key)
 
             # Step3: 构建提示内容
             sys_prompt = self.prompt['_SYSTEM_TASK_SCHEDULE_PROMPT']
@@ -56,13 +56,35 @@ class TaskPlanner(BaseModule):
                 habits=habits,
                 tasks=task_dict,
                 existed_events=events,
+                start_time=schedule_time,
                 deadline=deadline
             )
-            response = send_chat_prompts(sys_prompt, user_prompt, self.llm)
-            return response
+            response= send_chat_prompts(sys_prompt, user_prompt, self.llm)
+            print(response)
+            schedule=json.loads(response.strip())
+            return schedule
         except Exception as e:
             print(f"Error creating schedule: {e}")
             return None
+        
+    def execute_schedule_with_applescript(self,schedule):
+        """
+        根据生成的计划，使用 AppleScript 创建日历事件和提醒。
+        """
+        try:
+            # 遍历计划中的任务
+            for task in schedule:
+                title = task["Task"]
+                date = task["Date"]
+                start_time = task["StartTime"]
+                end_time = task["EndTime"]
+                print(title,date,start_time,end_time)
+                # 创建提醒和事件的 AppleScript
+                self.appleScript.add_event(title, date, start_time,end_time)
+
+        except Exception as e:
+            print(f"执行计划时出错: {e}")
+
 
 if __name__ == '__main__':
     task_planner = TaskPlanner()
