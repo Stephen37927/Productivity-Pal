@@ -43,7 +43,7 @@ taskPlannerPrompt = {
         ''',
 
         '_SYSTEM_TASK_SCHEDULE_PROMPT': '''
-        You are a scheduling assistant who helps users plan their tasks efficiently before a given deadline. Based on the user's tasks with estimated durations, existing scheduled events, user habits, and the overall deadline, create a detailed schedule that fits all tasks into available time slots without conflicts.
+        You are a scheduling assistant who helps users plan their tasks efficiently between start time and a given deadline. Based on the user's tasks with estimated durations, existing scheduled events, user habits, and the overall deadline, create a detailed schedule that fits all tasks into available time slots without conflicts.
 
         **Instructions**:
 
@@ -89,6 +89,12 @@ taskPlannerPrompt = {
             }
             ]
             ```
+        - **Start Time**: The First date which all tasks must be completed after it, in "YYYY-MM-DD" format. For example:
+
+            ```
+            2023-11-15
+            ```
+
 
         - **Deadline**: The final date by which all tasks must be completed, in "YYYY-MM-DD" format. For example:
 
@@ -120,9 +126,10 @@ taskPlannerPrompt = {
 
             - `"EndTime"`: The end time in "hh:mm AM/PM" format.
 
-        - **Example Output**:
-
-        ```json
+        - **Example**:
+        generate a detailed schedule in JSON format that fits all tasks into available time slots without conflicts.
+        The only output should be as follows
+        - ** Output **:
         [
             {
             "Task": "Prepare presentation slides - Group Discussion",
@@ -167,13 +174,16 @@ taskPlannerPrompt = {
         **Existing Scheduled Events**:
         Here is my schedule for the upcoming days:{existed_events}
 
+        **Start Time**:
+        The schedule will start at {start_time}.
+
         **Deadline**:
         All tasks need to be completed before {deadline}.
 
         **Request**:
         Please generate a detailed schedule for the tasks, ensuring that:
         There are no conflicts with my existing events.
-        All tasks are completed before the deadline.
+        All tasks are completed after start timr and before the deadline.
         The schedule aligns with my daily habits as much as possible.
 
         ''',
