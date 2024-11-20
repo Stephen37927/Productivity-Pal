@@ -50,55 +50,30 @@ schedule_prompt = {
             "Date": "2023-11-17",
             "StartTime": "02:00 PM",
             "EndTime": "04:00 PM",
-            "ReferenceHabit": {
-                "Activity": "Studying",
-                "Pattern": "Afternoon focus",
-                "SimilarityReason": "Both activities require sustained concentration and focus."
-            }
         },
         {
             "Task": "Prepare presentation slides - Material Collection",
             "Date": "2023-11-18",
             "StartTime": "10:00 AM",
             "EndTime": "12:00 AM",
-            "ReferenceHabit": {
-                "Activity": "Studying",
-                "Pattern": "Afternoon focus",
-                "SimilarityReason": "Continues similar focus period on a subsequent day."
-            }
         },
         {
             "Task": "Prepare presentation slides - Sort out Material",
             "Date": "2023-11-20",
             "StartTime": "1:00 PM",
             "EndTime": "3:00 PM",
-            "ReferenceHabit": {
-                "Activity": "Studying",
-                "Pattern": "Afternoon focus",
-                "SimilarityReason": "Final review session before the deadline."
-            }
         },
         {
             "Task": "Prepare presentation slides - Make PowerPoint",
             "Date": "2023-11-20",
             "StartTime": "1:00 PM",
             "EndTime": "3:00 PM",
-            "ReferenceHabit": {
-                "Activity": "Studying",
-                "Pattern": "Afternoon focus",
-                "SimilarityReason": "Final review session before the deadline."
-            }
         },
         {
             "Task": "Prepare presentation slides - Final Presentation",
             "Date": "2023-11-20",
             "StartTime": "1:00 PM",
             "EndTime": "3:00 PM",
-            "ReferenceHabit": {
-                "Activity": "Studying",
-                "Pattern": "Afternoon focus",
-                "SimilarityReason": "Final review session before the deadline."
-            }
         }
     ]
 

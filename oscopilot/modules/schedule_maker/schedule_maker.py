@@ -32,12 +32,12 @@ class ScheduleMaker(BaseModule):
         return filtered_logs[:limit] if limit > 0 else filtered_logs
 
 
-    def fetch_habits(self):
+    def fetch_habits(self,task):
         """
         调用 HabitTracker 获取最近 7 天的习惯。
         """
         try:
-            return self.habit_tracker.get_habit_from_logs(days=7, limit=15, task="")
+            return self.habit_tracker.get_habit_from_logs(days=7, limit=15, task=task)
         except Exception as e:
             print(f"Error fetching habits: {e}")
             return []
@@ -45,7 +45,7 @@ class ScheduleMaker(BaseModule):
     def create_schedule(self, deadline, deadline_name):
         try:
             # Step 1: 获取 Habit 数据
-            habits = self.fetch_habits()
+            habits = self.fetch_habits(deadline_name)
 
             # Step 2: 根据 Deadline 获取日志
             logs = self.fetch_logs_by_deadline(deadline)
