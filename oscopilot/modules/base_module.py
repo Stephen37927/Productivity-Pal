@@ -1,7 +1,7 @@
 import re
 import json
 import os
-from oscopilot.utils.llms import OpenAI, OLLAMA, Doubao
+from oscopilot.utils.llms import OpenAI, OLLAMA, Doubao, SambaNova
 # from oscopilot.environments.py_env import PythonEnv
 # from oscopilot.environments.py_jupyter_env import PythonJupyterEnv
 from oscopilot.environments import Env
@@ -22,6 +22,9 @@ class BaseModule:
             self.llm = OLLAMA()
         elif MODEL_TYPE == "Doubao":
             self.llm = Doubao()
+        elif MODEL_TYPE == "SambaNova":
+            self.llm = SambaNova()
+        print(f"Model Name: {self.llm.model_name}")
         # self.environment = PythonEnv()
         # self.environment = PythonJupyterEnv()
         self.environment = Env()
@@ -112,6 +115,12 @@ class BaseModule:
         return data_list
 
     def transfer_data_to_prompt(self, data_list):
+
+        if not isinstance(data_list, (list, dict)):
+            raise ValueError("Input data_list must be a list or a dictionary.")
+        if isinstance(data_list, dict):
+            data_list = [data_list]
+
         results = ""
         i = 1
         for data in data_list:
