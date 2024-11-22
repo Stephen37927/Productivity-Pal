@@ -33,7 +33,7 @@ class HabitTracker(BaseModule):
             start_timestamp = int(start_date.timestamp())
             end_timestamp = int(end_date.timestamp())
             print(start_timestamp, end_timestamp)
-            query["Date"] = {"$gte": start_timestamp, "$lte": end_timestamp},
+            query["Date"] = {"$gte": start_timestamp, "$lte": end_timestamp}
         pipeline = []
         if task is not None:
             task_embedding = dailylog_db.get_embedding(task)
@@ -69,7 +69,6 @@ class HabitTracker(BaseModule):
         user_prompt = habit_prompt["USER_PROMPT"] + "\n " + "**Activities**: \n" + self.transfer_data_to_prompt(logs)
         response = send_chat_prompts(habit_prompt["USER_PROMPT"], user_prompt, self.llm, prefix="Overall")
         return response
-
 
 if __name__ == '__main__':
     habit_tracker = HabitTracker()

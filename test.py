@@ -6,6 +6,3 @@ habit_tracker = HabitTracker()
 habit = habit_tracker.get_habit_from_logs(user_id=1, days=-1, task="coding", top_k=20, )
 print(habit)
 # habit_tracker.save_habit(habit)
-
-
-

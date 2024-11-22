@@ -14,8 +14,8 @@ class AppleScript():
         if process.returncode == 0:
             print("操作成功!")
             return output.decode().strip()
-        else:
-            print(f"操作失败: {error.decode()}")
+        # else:
+        #     print(f"操作失败: {error.decode()}")
 
 
     def create_reminder_script(self,title, date, time):

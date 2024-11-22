@@ -51,31 +51,29 @@ taskPlannerPrompt = {
 
         - **User Habits**: A list of dictionaries, each containing a `"Pattern"` and a `"Description"` of this pattern. For example:
 
-            ```json
+            
             [
             {
                 "Pattern": "Morning relaxation",
-                "Description": "Often starts the day with a short period of relaxation, such as browsing social media."
+                "Description": "Typically begins the day with 15-30 minutes of light activities, such as browsing social media or enjoying a warm beverage to ease into the day."
             },
             {
                 "Pattern": "Afternoon focus",
-                "Description": "Usually engages in focused activities like studying during the afternoon, lasting for about 1-2 hours."
+                "Description": "Engages in focused work or study sessions during the early to mid-afternoon, usually lasting between 1 to 2 hours with minimal interruptions."
             }
             ]
-            ```
+            
 
         - **Tasks**: A dictionary where each key is a task name and the value is the estimated duration. For example:
 
-            ```json
             {
             "Task A": "2 hours",
             "Task B": "1.5 hours"
             }
-            ```
 
         - **Existing Scheduled Events**: A list of dictionaries, each containing an `"Event"` name, `"StartTime"`, and `"EndTime"`. For example:
 
-            ```json
+            
             [
             {
                 "Event": "Meeting",
@@ -88,7 +86,7 @@ taskPlannerPrompt = {
                 "EndTime": "2023-11-18 1:00 PM"
             }
             ]
-            ```
+            
         - **Start Time**: The First date which all tasks must be completed after it, in "YYYY-MM-DD" format. For example:
 
             ```
