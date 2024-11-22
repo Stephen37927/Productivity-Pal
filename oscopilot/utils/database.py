@@ -6,6 +6,8 @@ import os
 from sentence_transformers import SentenceTransformer
 from datetime import datetime,timedelta
 
+from examples.GAIA.run_GAIA import query
+
 load_dotenv(override=True)
 MODEL_NAME = os.getenv('MODEL_NAME')
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
@@ -529,6 +531,75 @@ class DeadlineDatabase(Database):
             print("Error:", e)
             return None
 
+    def get_tasks_need_to_reschedule(self, user_id, reschedule_time, need_to_prompt=False):
+        """
+        Fetches tasks that need to be rescheduled based on the reschedule time.
+        user_id (int): The user ID associated with the tasks.
+        reschedule_time (str): The reschedule time in timestamp
+        """
+        query = []
+        query.append({
+                "StartTime": {"$lt": reschedule_time},
+                "UserID": user_id,
+                "Status": {"$ne": 2}  # Status not completed
+            })
+        if need_to_prompt:
+            query.append({
+                "text": 0, "embedding": 0, "user_id": 0, "Parent Task": 0, "Subtasks": 0, "Type": 0
+            })
+        else:
+            query.append({
+                "text": 0, "embedding": 0, "user_id": 0
+            })
+        try:
+            results = self.collection.find(query)
+            tasks = []
+            for result in results:
+                if need_to_prompt:
+                    result["Deadline"] = self.timestamp_to_date(result["Deadline"], "%Y-%m-%d %H:%M")
+                    if result["Start Time"] != "":
+                        result["Start Time"] = self.timestamp_to_date(result["Start Time"], "%Y-%m-%d %H:%M")
+                tasks.append(result)
+            return tasks
+        except Exception as e:
+            print("Get Tasks Need To Reschedule Error:", e)
+            return []
+
+    def get_overdue_tasks(self, user_id, current_time, need_to_prompt=False):
+        """
+        Fetches tasks that are overdue based on the current time.
+        user_id (int): The user ID associated with the tasks.
+        current_time (str): The current time in timestamp
+        """
+        query = []
+        query.append({
+                "Deadline": {"$lt": current_time},
+                "UserID": user_id,
+                "Status": {"$nin": [2, 20]}  # Status not completed
+            })
+        if need_to_prompt:
+            query.append({
+                "text": 0, "embedding": 0, "user_id": 0, "Parent Task": 0, "Subtasks": 0, "Type": 0
+            })
+        else:
+            query.append({
+                "text": 0, "embedding": 0, "user_id": 0
+            })
+        try:
+            results = self.collection.find(query)
+            tasks = []
+            for result in results:
+                if need_to_prompt:
+                    result["Deadline"] = self.timestamp_to_date(result["Deadline"], "%Y-%m-%d %H:%M")
+                    if result["Start Time"] != "":
+                        result["Start Time"] = self.timestamp_to_date(result["Start Time"], "%Y-%m-%d %H:%M")
+                tasks.append(result)
+            return tasks
+        except Exception as e:
+            print("Get Overdue Tasks Error:", e)
+            return []
+
+
 
     # ----------------------------- update --------------------------------
     # TODO: update
@@ -569,11 +640,6 @@ class DeadlineDatabase(Database):
         document_id (str): The ID of the task or subtask to update.
         new_deadline (str): The new deadline date in timestamp format.
         """
-
-        # if new_deadline is not in the timestamp, raise an error
-
-            max_duration = duration_stats[0]["max_duration"]
-            min_duration = duration_stats[0]["min_duration"]
         try:
             new_deadline = self.date_to_timestamp(new_deadline, "%Y%m%d%H%M")
             result = self.collection.update_one(
@@ -597,11 +663,6 @@ class DeadlineDatabase(Database):
             print("Error:", e)
             return False
 
-            # 动态调整误差范围
-            if duration < min_duration:
-                tolerance = max(10, min_duration * 0.1)
-            elif duration > max_duration:
-                tolerance = max(10, max_duration * 0.1)
     def update_title(self,user_id,document_id,new_title):
         """
         Updates the title of a task or subtask.
@@ -623,35 +684,14 @@ class DeadlineDatabase(Database):
             )
             if result.modified_count > 0:
                 print("Title updated successfully.")
+                return True
             else:
-                tolerance = max(10, duration * 0.2)
-
-            # 匹配持续时长与用户输入接近的记录
-            results = []
-            logs = self.collection.find()
-            for log in logs:
-                if "Start Time" in log and "End Time" in log:
-                    try:
-                        start_time = datetime.strptime(log["Start Time"], "%Y%m%d%H%M")
-                        end_time = datetime.strptime(log["End Time"], "%Y%m%d%H%M")
-                        log_duration = (end_time - start_time).total_seconds() / 60
-
-                        # 打印调试信息
-                        print(
-                            f"记录 {log['Name']} 的时长: {log_duration:.2f} 分钟, 目标时长: {duration:.2f} 分钟, 容差范围: ±{tolerance:.2f} 分钟")
-
-                        # 判断持续时长是否在容许误差范围内
-                        if abs(log_duration - duration) <= tolerance:
-                            results.append(log)
-                    except Exception as e:
-                        print(f"Error processing log: {log}, Error: {e}")
-                else:
-                    print(f"跳过无效记录: {log}")
                 print("No matching document found.")
+                return False
         except Exception as e:
-            print("Error:", e)
+            print("Update Title Error:", e)
+            return False
 
-            return results
     def update_description(self,user_id,document_id,new_description):
         """
         Updates the description of a task or subtask.
@@ -673,10 +713,13 @@ class DeadlineDatabase(Database):
             )
             if result.modified_count > 0:
                 print("Description updated successfully.")
+                return True
             else:
                 print("No matching document found.")
+                return False
         except Exception as e:
-            print("Error:", e)
+            print("Update Description Error:", e)
+            return False
 
     def update_subtasks(self,user_id,document_id, new_subtasks, override=False):
         """
@@ -720,67 +763,9 @@ class DeadlineDatabase(Database):
                 print("No matching document found.")
                 return False
         except Exception as e:
-            print(f"Error during find_by_deadline: {e}")
-            return []
-            print("Error:", e)
+            print("Update Subtasks Error:", e)
             return False
 
-class DeadlineDatabase(Database):
-    def __init__(self,collection_name):
-        super().__init__()
-        self.collection = self.db[collection_name]
-    def insert(self,data,user_id):
-        i = 0
-        insert_count = 0
-        for item in data:
-            i = i+1
-            text = ""
-            if "Subtasks" not in item:
-                item["Subtasks"] = []
-            for key, value in item.items():
-                if key == "Title":
-                    text = text + "Title: " + value + "; "
-                elif key == "Description":
-                    text = text + "Description: " + value + "; "
-                elif key == "Deadline":
-                    item["Deadline"] = self.date_to_timestamp(value, "%Y%m%d%H%M")
-            embedding = self.get_embedding(text)
-            document = {**item, "user_id": user_id, "text": text, "embedding": embedding}
-            try:
-                self.collection.insert_one(document)
-                insert_count = insert_count + 1
-            except Exception as e:
-                print(f"Error inserting document {i}: {e}")
-                continue
-        print(f"Inserted {insert_count} documents into the collection.")
-
-    def find(self, pipeline, task="", user_id=1, limit=-1):
-        cursors = self.collection.find(pipeline)
-        cursors = cursors.limit(limit) if limit > 0 else cursors
-        response = []
-        for cursor in cursors:
-            response.append(cursor)
-        logs = []
-        for item in response:
-            log = {}
-            for key, value in item.items():
-                if key == "Title":
-                    log["Title"] = value
-                elif key == "Description":
-                    log["Description"] = value
-                elif key == "Deadline":
-                    try:
-                        date_obj = datetime.strptime(value, "%Y%m%d%H%M")
-                        log["Deadline"] = date_obj.strftime("%Y-%m-%d %H:%M")
-                    except:
-                        pass
-                elif key == "Status":
-                    try:
-                        log["Status"] = value
-                    except:
-                        pass
-            logs.append(log)
-        return logs
     def update_parent_task(self,user_id,document_id,new_parent_task):
         """
         Updates the parent task of a subtask.
@@ -807,7 +792,7 @@ class DeadlineDatabase(Database):
                 print("No matching document found.")
                 return False
         except Exception as e:
-            print("Error:", e)
+            print("Update Parent Task Error:", e)
             return False
 
     def update_start_time(self,user_id,document_id,new_start_time, time_format):
@@ -838,7 +823,7 @@ class DeadlineDatabase(Database):
                 print("No matching document found.")
                 return False
         except Exception as e:
-            print("Error:", e)
+            print("Update Start Time Error:", e)
             return False
 
     def update_deadline(self,user_id,document_id,new_deadline,time_format):
@@ -869,7 +854,7 @@ class DeadlineDatabase(Database):
                 print("No matching document found.")
                 return False
         except Exception as e:
-            print("Error:", e)
+            print("Update Deadline Error:", e)
             return False
 
     # ----------------------------- delete --------------------------------
@@ -893,7 +878,7 @@ class DeadlineDatabase(Database):
                 print("No matching document found.")
                 return False
         except Exception as e:
-            print("Error:", e)
+            print("Delete Task Error:", e)
             return False
 
 

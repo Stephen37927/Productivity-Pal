@@ -18,28 +18,21 @@ class Rescheduler(BaseModule):
         self.user_id = user_id
         self.reschedule_time = datetime.strptime(reschedule_time, "%Y-%m-%d %H:%M")
         self.habit_tracker = HabitTracker()
-        self.daily_log_db = DailyLogDatabase("daily_logs")
-        self.deadline_db = DeadlineDatabase("tasks")
+        self.daily_log_db = DailyLogDatabase("DailyLogs")
+        self.deadline_db = DeadlineDatabase("Deadlines")
         self.prompt = schedule_prompt
 
     def get_tasks_to_reschedule(self):
         """获取需要重新调度的任务"""
         try:
             reschedule_timestamp = int(self.reschedule_time.timestamp())
-            pipeline = {
-                "StartTime": {"$lt": reschedule_timestamp},
-                "UserID": self.user_id,
-                "Status": {"$ne": 2},  # 状态不为已完成
-            }
-            print("[Debug] 查询条件:", pipeline)
-            tasks = self.deadline_db.find(pipeline)
-            print("[Debug] 查询返回的任务:", tasks)
+            tasks_need_reschedule = self.deadline_db.get_tasks_need_to_reschedule(user_id=self.user_id, reschedule_time=reschedule_timestamp,need_to_prompt=False)
             # 转换任务格式
             structured_tasks = []
-            for task in tasks:
-                if "StartTime" in task and "Deadline" in task:
-                    start_time = datetime.fromtimestamp(task["StartTime"])
-                    deadline = datetime.fromtimestamp(task["Deadline"])
+            for task in tasks_need_reschedule:
+                if "Start Time" in task and "Deadline" in task:
+                    start_time = task["Start Time"]
+                    deadline = task["Deadline"]
                     duration_hours = (deadline - start_time).total_seconds() / 3600
                     structured_tasks.append({
                         "Title": task.get("Title", "Unnamed Task"),
