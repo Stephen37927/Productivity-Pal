@@ -37,7 +37,7 @@ class ScheduleMaker(BaseModule):
         调用 HabitTracker 获取最近 7 天的习惯。
         """
         try:
-            return self.habit_tracker.get_habit_from_logs(days=7, limit=15, task=task)
+            return self.habit_tracker.get_habit_about_certain_task(user_id=1, task=task, top_k=5)
         except Exception as e:
             print(f"Error fetching habits: {e}")
             return []

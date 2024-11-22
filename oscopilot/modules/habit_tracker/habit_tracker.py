@@ -6,7 +6,7 @@ from transformers import pipeline
 
 from oscopilot import BaseModule
 from oscopilot.prompts.Habit_Prompt import habit_prompt
-from oscopilot.utils.database import DailyLogDatabase, HabitDatabase
+from oscopilot.utils.database import DailyLogDatabase
 from pymongo import DESCENDING
 from oscopilot.utils.utils import send_chat_prompts
 
@@ -17,52 +17,29 @@ MODEL_NAME = os.getenv('HABIT_EXTRACTION_ENDPOINT')
 class HabitTracker(BaseModule):
     def __init__(self):
         super().__init__()
+        self.daily_log_db = DailyLogDatabase("DailyLogs")
 
-    def fetch_recent_logs(self, user_id, top_k, days = -1, task=None):
-        dailylog_db = DailyLogDatabase("Daily_logs")
-        dailylog_db.collection.create_index([("Date", DESCENDING)])
-        dailylog_db.collection.create_index(["user_id"])
-        indexes = dailylog_db.collection.index_information()
-        # print(indexes)
-        query = {
-            "user_id": user_id
-        }
-        if days > 0:
-            end_date = datetime.now()
-            start_date = end_date - timedelta(days=days)
-            start_timestamp = int(start_date.timestamp())
-            end_timestamp = int(end_date.timestamp())
-            print(start_timestamp, end_timestamp)
-            query["Date"] = {"$gte": start_timestamp, "$lte": end_timestamp},
-        pipeline = []
-        if task is not None:
-            task_embedding = dailylog_db.get_embedding(task)
-            pipeline.append({
-                "$search": {
-                    "knnBeta": {
-                        "vector": task_embedding,
-                        "path": "embedding",
-                        "k": top_k
-                    }
-                }
-            })
-        pipeline.append({"$match": query})
-        pipeline.append({"$limit": top_k})
-        logs = dailylog_db.find(pipeline)
-        print(f"Find {len(logs)} logs")
-        return logs
+    # def save_habit(self, habit):
+    #     data = json.loads(habit)
+    #     for key, value in data.items():
+    #         habit_db = HabitDatabase(key)
+    #         habit_db.insert(value)
+    #     return "Habit saved successfully"
 
-    def save_habit(self, habit):
-        data = json.loads(habit)
-        for key, value in data.items():
-            habit_db = HabitDatabase(key)
-            habit_db.insert(value)
-        return "Habit saved successfully"
+    def get_habit_about_certain_task(self, user_id,  task, top_k):
+        """
+        Get the habit about a certain task.
+        1. From daily log database, get the logs of the task via embedding.
+        2. Use the habit extraction model to extract the habit.
+        3. Return the habit.
 
-    def get_habit_from_logs(self, user_id, days =-1, top_k=-1, task=""):
-        if task == "" and days == -1:
-            return "Invaild request because both task and days are empty"
-        logs = self.fetch_recent_logs(user_id=user_id, top_k=top_k, days=days, task=task)
+        :param user_id: user id
+        :param task: task name and description
+        :param top_k: top k logs
+
+        :return: habit
+        """
+        logs = self.daily_log_db.find_relevant_datalogs(user_id=user_id, task=task, top_k=top_k,need_to_prompt=True)
         # self.llm.set_model_name(MODEL_NAME)
         if len(logs) == 0:
             return "No logs found"
@@ -73,4 +50,5 @@ class HabitTracker(BaseModule):
 
 if __name__ == '__main__':
     habit_tracker = HabitTracker()
-    logs = habit_tracker.abstract_logs()
+    logs = habit_tracker.get_habit_about_certain_task(user_id=1, task="coding", top_k=20)
+    print(logs)
