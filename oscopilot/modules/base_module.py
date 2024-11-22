@@ -117,7 +117,7 @@ class BaseModule:
         for data in data_list:
             result = str(i) + ". "
             for key, value in data.items():
-                result += key + str(value) + "; "
+                result += key+": "+ str(value) + "; "
             i += 1
             results += result + "\n"
         return results

@@ -43,7 +43,7 @@ class BaseAgent:
             result.append(message[_begin + len(begin_str):_end])
             message = message[_end + len(end_str):]
             _begin = message.find(begin_str)
-            _end = message.find(end_str)
+            _end = message._find(end_str)
         return result  
 
     def extract_json_from_string(self, text):

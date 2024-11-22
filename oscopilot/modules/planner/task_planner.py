@@ -11,6 +11,7 @@ import re
 from add_events import AppleScript
 
 load_dotenv(override=True)
+# MODEL_NAME = os.getenv('CALENDAR_PLAN_ENDPOINT')
 
 class TaskPlanner(BaseModule):
     def __init__(self):
@@ -46,7 +47,7 @@ class TaskPlanner(BaseModule):
             # 返回一个json字段，Habits: 一个包含 Pattern 和 Description 的列表，说明用户的具体习惯和对应描述；Behavioral Tendencies: 一个包含 Observation 和 Details 的列表，描述用户行为模式的观察和细节
             habits={}
             for key in task_dict:
-                habits[key]=self.habit_tracker.get_habit_from_logs(user_id,days=-1, top_k=5, task=key)
+                habits[key]= self.habit_tracker.get_habit_about_certain_task(user_id, task=key, top_k=5)
 
             # Step3: 构建提示内容
             sys_prompt = self.prompt['_SYSTEM_TASK_SCHEDULE_PROMPT']
