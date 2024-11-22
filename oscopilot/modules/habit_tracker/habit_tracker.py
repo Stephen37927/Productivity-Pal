@@ -47,7 +47,6 @@ class HabitTracker(BaseModule):
         response = send_chat_prompts(habit_prompt["USER_PROMPT"], user_prompt, self.llm, prefix="Overall")
         return response
 
-
 if __name__ == '__main__':
     habit_tracker = HabitTracker()
     logs = habit_tracker.get_habit_about_certain_task(user_id=1, task="coding", top_k=20)

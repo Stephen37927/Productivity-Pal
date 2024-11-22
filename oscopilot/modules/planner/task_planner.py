@@ -10,7 +10,6 @@ from oscopilot.utils.utils import send_chat_prompts
 import re
 from add_events import AppleScript
 
-
 load_dotenv(override=True)
 # MODEL_NAME = os.getenv('CALENDAR_PLAN_ENDPOINT')
 
@@ -45,7 +44,7 @@ class TaskPlanner(BaseModule):
             events=self.appleScript.get_calendar_events(deadline)
             
             # Step2: 获取用户最近7天的习惯
-            # TODO lz 举例 
+            # 返回一个json字段，Habits: 一个包含 Pattern 和 Description 的列表，说明用户的具体习惯和对应描述；Behavioral Tendencies: 一个包含 Observation 和 Details 的列表，描述用户行为模式的观察和细节
             habits={}
             for key in task_dict:
                 habits[key]= self.habit_tracker.get_habit_about_certain_task(user_id, task=key, top_k=5)
