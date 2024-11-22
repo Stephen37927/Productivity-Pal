@@ -6,8 +6,6 @@ import os
 from sentence_transformers import SentenceTransformer
 from datetime import datetime,timedelta
 
-from examples.GAIA.run_GAIA import query
-
 load_dotenv(override=True)
 MODEL_NAME = os.getenv('MODEL_NAME')
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
@@ -354,8 +352,8 @@ class DeadlineDatabase(Database):
             "Description": "Task Description", # optional
             "Start Time": "Task Start Time", # optional, format = "%Y%m%d%H%M", e.g., "202411201200"
             "Deadline": "Task Deadline",
-            "Subtasks": [], # if task is a parent task, this field will contain subtasks, optional
-            "Parent Task": [], # if task is a subtask, this field will contain parent task details, required
+            "Subtasks": [], # if task is a parent task, this field will contain subtasks' id, optional
+            "Parent Task": [], # if task is a subtask, this field will contain parent task's id, required for subtasks
             "Status": 0, # optional
                 for subtasks: default is 0. 0 - Incomplete, 1 - ongoing, 2 - completed, -1 - overdue
                 for parent tasks: default is 0. 0 - Not start yet, 10 - allocated, 20 - completed , -10 overdue

@@ -5,14 +5,12 @@ import time
 import requests
 import json
 from dotenv import load_dotenv
-from openai import base_url
-from pymongo import MongoClient
-from sentence_transformers import SentenceTransformer
+import openai
 from volcenginesdkarkruntime import Ark
 
 load_dotenv(override=True)
 
-OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+API_KEY = os.getenv('OPENAI_API_KEY')
 OPENAI_ORGANIZATION = os.getenv('OPENAI_ORGANIZATION')
 BASE_URL = os.getenv('OPENAI_BASE_URL')
 CONNECTION_STRING = os.getenv('CONNECTION_STRING')
@@ -166,7 +164,7 @@ class Doubao:
         MODEL_NAME = os.getenv('DEFAULT_ENDPOINT')
         self.model_name = MODEL_NAME
         self.base_url = BASE_URL
-        self.api_key = OPENAI_API_KEY
+        self.api_key = API_KEY
         self.client = Ark(base_url=self.base_url, api_key=self.api_key)
 
     def chat(self, messages, temperature=0,prefix=""):
@@ -200,16 +198,64 @@ class Doubao:
     def set_model_name(self, model_name):
         self.model_name = model_name
 
-class DoubaoEmbedding(Doubao):
-    def __init__(self):
-        super().__init__()
 
-    def embeddings(self, req):
-        try:
-            resp = self.client.embeddings(endpoint_id = self.model_name, req = req)
-            return resp
-        except Exception as e:
-            print(e)
+class SambaNova:
+    """
+    A class for interacting with the SambaNova API, allowing for chat completion requests.
+
+    This class simplifies the process of sending requests to OpenAI's chat model by providing
+    a convenient interface for the chat completion API. It handles setting up the API key
+    and organization for the session and provides a method to send chat messages.
+
+    Attributes:
+        model_name (str): The name of the model to use for chat completions. Default is set
+                          by the global `MODEL_NAME`.
+        api_key (str): The API key used for authentication with the OpenAI API. This should
+                       be set through the `OPENAI_API_KEY` global variable.
+        organization (str): The organization ID for OpenAI. Set this through the
+                            `OPENAI_ORGANIZATION` global variable.
+    """
+
+    def __init__(self):
+        """
+        Initializes the SambaNova object with the given configuration.
+        """
+        MODEL_NAME = os.getenv('MODEL_NAME')
+        self.model_name = MODEL_NAME
+        self.api_key = API_KEY
+        self.client = openai.OpenAI(base_url="https://api.sambanova.ai/v1", api_key=self.api_key)
+
+
+    def chat(self, messages, temperature=0, prefix=""):
+        """
+        Sends a chat completion request to the OpenAI API using the specified messages and parameters.
+
+        Args:
+            messages (list of dict): A list of message dictionaries, where each dictionary
+                                     should contain keys like 'role' and 'content' to
+                                     specify the role (e.g., 'system', 'user') and content of
+                                     each message.
+            temperature (float, optional): Controls randomness in the generation. Lower values
+                                           make the model more deterministic. Defaults to 0.
+
+        Returns:
+            str: The content of the first message in the response from the OpenAI API.
+
+        """
+        stream = self.client.chat.completions.create(
+            model=self.model_name,
+            messages=messages,
+            stream=True,
+            temperature=temperature,
+        )
+        output_text = ""
+        for chunk in stream:
+            if hasattr(chunk, 'choices') and len(chunk.choices) > 0 and hasattr(chunk.choices[0], 'delta'):
+                delta = chunk.choices[0].delta
+                if hasattr(delta, 'content'):
+                    output_text += delta.content
+        return output_text
+
 
 
 def main():
@@ -220,7 +266,7 @@ def main():
     # message.append({"role": "user", "content": 'hello'})
     # print(OPENAI_API_KEY)
     # print(BASE_URL)
-    llm = Doubao()
+    llm = SambaNova()
     print("model_name", llm.model_name)
     print("api_key", llm.api_key)
     response = llm.chat(messages)

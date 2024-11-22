@@ -72,7 +72,7 @@ class ToolManager:
             )
         elif EMBED_MODEL_TYPE == "OLLAMA":
             embedding_function = OllamaEmbeddings(model=EMBED_MODEL_NAME)
-        elif EMBED_MODEL_TYPE == "Doubao":
+        elif EMBED_MODEL_TYPE == "Doubao" or EMBED_MODEL_TYPE == "SambaNova":
             embedding_function = OpenAIEmbeddings(
                 openai_api_key = EMBEDDING_API_KEY,
                 openai_organization = OPENAI_ORGANIZATION,
