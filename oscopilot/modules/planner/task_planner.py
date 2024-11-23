@@ -32,7 +32,8 @@ class TaskPlanner(BaseModule):
             )
             response = send_chat_prompts(sys_prompt, user_prompt, self.llm)
             task_list = json.loads(response)
-            task_duration_dict = {item['Task']: item['Duration'] for item in task_list}
+            # task_duration_dict = {item['Task']: item['Duration'] for item in task_list}
+            task_duration_dict = {item['Task']: "" for item in task_list}
             return task_duration_dict
         except Exception as e:
             print(f"Error creating schedule: {e}")
