@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Productivity PAL</title>
+  <!-- <style>
+    body {
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    }
+
+    h1 {
+    text-align: center;
+    font-size: 1.5em;
+    color: #333;
+    }
+
+    form {
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px; /* macOS 风格的圆角 */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.2); /* macOS 风格的阴影 */
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    }
+
+    label {
+    text-align: left; /* 确保 label 在左对齐 */
+    font-weight: bold;
+    color: #666; /* macOS 风格的标签颜色 */
+    }
+
+    .form-group {
+    display: flex;
+    align-items: center; /* 垂直居中对齐 */
+    gap: 10px; /* 增加 label 和输入框之间的间距 */
+    }
+
+    input[type="text"],
+    input[type="date"] {
+    padding: 8px;
+    font-size: 1em;
+    border: 1px solid #ccc;
+    border-radius: 8px; /* macOS 风格的圆角 */
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1); /* macOS 风格的内阴影 */
+    }
+
+    button {
+    padding: 10px 20px;
+    font-size: 1em;
+    font-weight: bold;
+    color: white;
+    background-color: #007BFF;
+    border: none;
+    border-radius: 8px; /* macOS 风格的圆角 */
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin: 0 auto;
+    display: block;
+    background-image: linear-gradient(#007bff, #0056b3); /* macOS 风格的渐变 */
+    }
+
+    button:hover {
+    background-color: #0056b3;
+    background-image: none; /* 移除渐变效果 */
+    }
+  </style> -->
+  <style>
+    body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  background-color: #f9f9f9;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+form {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.form-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+label {
+  min-width: 100px;  /* 设置固定宽度 */
+  text-align: right; /* 右对齐 */
+  font-weight: bold;
+  color: #666;
+  margin-right: 10px; /* 添加右侧间距 */
+}
+
+input[type="text"],
+input[type="date"] {
+  flex: 1;
+  padding: 8px;
+  font-size: 1em;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+button {
+  padding: 10px 20px;
+  font-size: 1em;
+  font-weight: bold;
+  color: white;
+  background-color: #007BFF;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin: 0 auto;
+  display: block;
+  background-image: linear-gradient(#007bff, #0056b3);
+}
+
+button:hover {
+  background-color: #0056b3;
+  background-image: none;
+}
+  </style>
+</head>
+<body>
+    <form id="task-form">
+        <div class="form-group">
+            <label for="task-name">Task Name</label>
+            <input type="text" id="task-name" required>
+        </div>
+        <div class="form-group">
+            <label for="task-desc">Description</label>
+            <input type="text" id="task-desc" required>
+        </div>
+        <div class="form-group">
+            <label for="due-date">Due Date</label>
+            <input type="date" id="due-date" required>
+        </div>
+        <button type="submit">Confirm</button>
+    </form>
+    <script src="renderer.js"></script>
+</body>
+</html>
