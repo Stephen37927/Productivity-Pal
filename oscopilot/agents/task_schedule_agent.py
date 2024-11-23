@@ -11,8 +11,8 @@ class TaskScheduleAgent:
         self.deadline_db = DeadlineDatabase("Deadlines")
      
 
-    def set_reschedule_time(self, reschedule_time):
-        self.rescheduler = Rescheduler(user_id=2, reschedule_time=reschedule_time)
+    def set_reschedule_time(self, user_id,reschedule_time):
+        self.rescheduler = Rescheduler(user_id, reschedule_time=reschedule_time)
 
     def schedule_task(self, user_id, task_name,description,deadline):
         deadline=int(datetime.datetime.strptime(deadline, "%Y-%m-%d %H:%M:%S").timestamp())
@@ -43,8 +43,8 @@ class TaskScheduleAgent:
             start_datetime_str = f'{task["Date"]} {task["StartTime"]}'
             end_datetime_str = f'{task["Date"]} {task["EndTime"]}'
 
-            start_timestamp = int(datetime.datetime.strptime(start_datetime_str, "%Y-%m-%d %I:%M %p").timestamp())
-            end_timestamp = int(datetime.datetime.strptime(end_datetime_str, "%Y-%m-%d %I:%M %p").timestamp())
+            start_timestamp = int(datetime.datetime.strptime(start_datetime_str, "%Y-%m-%d %H:%M").timestamp())
+            end_timestamp = int(datetime.datetime.strptime(end_datetime_str, "%Y-%m-%d %H:%M").timestamp())
 
             add_task["Title"]=task["Task"]
             add_task["Status"]=0
@@ -60,5 +60,12 @@ class TaskScheduleAgent:
         return 
     
     def reschedule_task(self):
-        tasks=self.rescheduler.get_tasks_to_reschedule()
-        print(tasks)
+        # 获取需要重新调度的任务
+        tasks,ids=self.rescheduler.get_tasks_to_reschedule()
+        # 获取大任务deadline
+        schedule=self.task_planner.schedule_task(self.rescheduler.user_id, tasks, self.rescheduler.reschedule_time, deadline)
+        self.task_planner.execute_schedule_with_applescript(schedule)
+
+        # 更新小人物的起始结束时间
+
+        return 

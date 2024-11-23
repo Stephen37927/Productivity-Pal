@@ -24,15 +24,17 @@ class Rescheduler(BaseModule):
         """获取需要重新调度的任务"""
         try:
             reschedule_timestamp = int(self.reschedule_time.timestamp())
-            print(reschedule_timestamp)
             tasks_need_reschedule = self.deadline_db.get_tasks_need_to_reschedule(
                 user_id=self.user_id,
                 reschedule_time=reschedule_timestamp,
                 need_to_prompt=False
             )
 
+            ids={i["_id"]:i["Parent task"] for i in tasks_need_reschedule}
+
+
             # 转换任务格式
-            structured_tasks = []
+            structured_tasks = {}
             for task in tasks_need_reschedule:
                 if "Start Time" in task and "Deadline" in task:
                     start_time = task["Start Time"]
@@ -47,14 +49,15 @@ class Rescheduler(BaseModule):
                         deadline = datetime.strptime(deadline, "%Y-%m-%d %H:%M")
                         duration_hours = (deadline - start_time).total_seconds() / 3600
 
-                    structured_tasks.append({
-                        "Task": task.get("Title", "Unnamed Task"),
-                        "Duration": f"{duration_hours:.2f} hours"
-                    })
-            return structured_tasks
+                    # structured_tasks.append({
+                    #     "Task": task.get("Title", "Unnamed Task"),
+                    #     "Duration": f"{duration_hours:.2f} hours"
+                    # })
+                    structured_tasks[task.get("Title", "Unnamed Task")] = f"{duration_hours:.2f} hours"
+            return structured_tasks, ids
         except Exception as e:
             print(f"Error retrieving tasks for rescheduling: {e}")
-            return []
+            return [],[]
 
     def reschedule_tasks(self, tasks, start_time, deadline):
         """生成新任务计划"""
