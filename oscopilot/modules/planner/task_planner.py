@@ -58,7 +58,6 @@ class TaskPlanner(BaseModule):
                 start_time=schedule_time,
                 deadline=deadline
             )
-
             response= send_chat_prompts(sys_prompt, user_prompt, self.llm)
             print(response)
             schedule=json.loads(response.strip())

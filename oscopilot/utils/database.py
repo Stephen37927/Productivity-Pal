@@ -533,36 +533,24 @@ class DeadlineDatabase(Database):
         """
         Fetches tasks that need to be rescheduled based on the reschedule time.
         user_id (int): The user ID associated with the tasks.
-        reschedule_time (int): The reschedule time as a timestamp.
-        need_to_prompt (bool): Whether to include additional fields in the response.
+        reschedule_time (str): The reschedule time in timestamp
         """
-        indexes = self.collection.index_information()
-        print("---------------------index-------------------: \n",indexes)
-        try:
-            # 构造查询条件
-            filter_condition = {
-                "Start Time": {"$lt": reschedule_time},
+        query = []
+        query.append({
+                "StartTime": {"$lt": reschedule_time},
                 "UserID": user_id,
                 "Status": {"$ne": 2}  # Status not completed
-            }
-
-            # 构造字段投影条件
-            if need_to_prompt:
-                projection = {
-                    "text": 0, "embedding": 0, "user_id": 0, "Parent Task": 0, "Subtasks": 0, "Type": 0
-                }
-            else:
-                projection = {
-                    "text": 0, "embedding": 0, "user_id": 0
-                }
-
-            print(f"[Debug] MongoDB filter: {filter_condition}")
-            print(f"[Debug] MongoDB projection: {projection}")
-
-            # 执行查询
-            results = self.collection.find({"UserID": user_id}, {})
-            print(f"[Debug] Raw results from MongoDB: {list(results)}")
-            # 处理结果
+            })
+        if need_to_prompt:
+            query.append({
+                "text": 0, "embedding": 0, "user_id": 0, "Parent Task": 0, "Subtasks": 0, "Type": 0
+            })
+        else:
+            query.append({
+                "text": 0, "embedding": 0, "user_id": 0
+            })
+        try:
+            results = self.collection.find(query)
             tasks = []
             for result in results:
                 if need_to_prompt:
@@ -570,7 +558,6 @@ class DeadlineDatabase(Database):
                     if result["Start Time"] != "":
                         result["Start Time"] = self.timestamp_to_date(result["Start Time"], "%Y-%m-%d %H:%M")
                 tasks.append(result)
-
             return tasks
         except Exception as e:
             print("Get Tasks Need To Reschedule Error:", e)

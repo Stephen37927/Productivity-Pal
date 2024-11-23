@@ -1,9 +1,13 @@
+import json
 import os
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
+from transformers import pipeline
 
 from oscopilot import BaseModule
 from oscopilot.prompts.Habit_Prompt import habit_prompt
 from oscopilot.utils.database import DailyLogDatabase
+from pymongo import DESCENDING
 from oscopilot.utils.utils import send_chat_prompts
 
 load_dotenv(override=True)
@@ -14,7 +18,6 @@ class HabitTracker(BaseModule):
     def __init__(self):
         super().__init__()
         self.daily_log_db = DailyLogDatabase("DailyLogs")
-
 
     # def save_habit(self, habit):
     #     data = json.loads(habit)
@@ -42,8 +45,7 @@ class HabitTracker(BaseModule):
             return "No logs found"
         user_prompt = habit_prompt["USER_PROMPT"] + "\n " + "**Activities**: \n" + self.transfer_data_to_prompt(logs)
         response = send_chat_prompts(habit_prompt["USER_PROMPT"], user_prompt, self.llm, prefix="Overall")
-        normalized_habits = self.extract_habit_from_response(response)
-        return normalized_habits
+        return response
 
 if __name__ == '__main__':
     habit_tracker = HabitTracker()
