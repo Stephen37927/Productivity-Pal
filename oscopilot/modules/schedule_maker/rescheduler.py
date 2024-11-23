@@ -76,7 +76,7 @@ class Rescheduler(BaseModule):
                     task_habits = [
                         {"Pattern": "No habits found", "Description": "No habits could be extracted for this task."}]
                 else:
-                          json.dumps(task_habits, indent=2, ensure_ascii=False))
+                          json.dumps(task_habits, indent=2, ensure_ascii=False)
 
                 # 检查 task_habits 数据类型
                 if isinstance(task_habits, str):

@@ -148,6 +148,7 @@ class BaseModule:
                         return habit_data
 
                     except json.JSONDecodeError as e:
+                        return {"error": str(e)}
             else:
                 return {"error": "No JSON found"}
         except Exception as e:

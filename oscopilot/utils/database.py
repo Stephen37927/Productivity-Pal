@@ -537,8 +537,8 @@ class DeadlineDatabase(Database):
         need_to_prompt (bool): Whether to include additional fields in the response.
         """
         filter_query = {
-            "StartTime": {"$lt": reschedule_time},
-            "UserID": user_id,
+            "Start Time": {"$lt": reschedule_time},
+            "user_id": user_id,
             "Status": {"$ne": 2}  # Status not completed
         }
         if need_to_prompt:
