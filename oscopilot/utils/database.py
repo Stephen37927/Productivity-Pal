@@ -533,7 +533,8 @@ class DeadlineDatabase(Database):
         """
         Fetches tasks that need to be rescheduled based on the reschedule time.
         user_id (int): The user ID associated with the tasks.
-        reschedule_time (str): The reschedule time in timestamp
+        reschedule_time (int): The reschedule time as a timestamp.
+        need_to_prompt (bool): Whether to include additional fields in the response.
         """
         filter_query = {
             "StartTime": {"$lt": reschedule_time},
@@ -554,6 +555,7 @@ class DeadlineDatabase(Database):
                     if result["Start Time"] != "":
                         result["Start Time"] = self.timestamp_to_date(result["Start Time"], "%Y-%m-%d %H:%M")
                 tasks.append(result)
+
             return tasks
         except Exception as e:
             print("Get Tasks Need To Reschedule Error:", e)

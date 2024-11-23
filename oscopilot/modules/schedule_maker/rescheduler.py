@@ -64,40 +64,68 @@ class Rescheduler(BaseModule):
                 })
 
                 # 调用 get_habit_from_logs 获取任务相关的 habits
-                task_habits = self.habit_tracker.get_habit_from_logs(
+                task_habits = self.habit_tracker.get_habit_about_certain_task(
                     user_id=self.user_id,
-                    days=-1,  # 查询所有时间范围内的日志
                     top_k=20,  # 返回最多20个相关日志
                     task=f"{task_title} {task_description}"
                 )
                 print(f"[Debug] Retrieved habits for task '{task_title}':\n", json.dumps(task_habits, indent=2, ensure_ascii=False))
 
-                # 确保 task_habits 是一个列表或字典
+                # 确保 task_habits 不为空，并追踪其值
+                if not task_habits:
+                    task_habits = [
+                        {"Pattern": "No habits found", "Description": "No habits could be extracted for this task."}]
+                else:
+                          json.dumps(task_habits, indent=2, ensure_ascii=False))
+
+                # 检查 task_habits 数据类型
                 if isinstance(task_habits, str):
                     try:
-                        task_habits = json.loads(task_habits)  # 解析为 Python 数据结构
+                        # 解析字符串为 JSON
+                        task_habits = json.loads(task_habits)
                         print("[Debug] Parsed task_habits as JSON:\n",
                               json.dumps(task_habits, indent=2, ensure_ascii=False))
                     except json.JSONDecodeError as e:
                         print("[Error] task_habits is not valid JSON:", e)
-                        raise ValueError("Invalid task_habits format.")
+                        task_habits = [{"Pattern": "Parsing Error", "Description": str(e)}]
 
-                if isinstance(task_habits, list):
+                # 确保 task_habits 不为空，并追踪其值
+                if not task_habits:
+                    print(f"[Warning] task_habits is empty for task '{task_title}'. Using default value.")
                     task_habits = [
-                        {"Pattern": habit.get("Pattern", ""), "Description": habit.get("Description", "")}
-                        for habit in task_habits if isinstance(habit, dict)
-                    ]
-                elif isinstance(task_habits, dict):
-                    task_habits = [
-                        {"Pattern": task_habits.get("Pattern", ""), "Description": task_habits.get("Description", "")}]
+                        {"Pattern": "No habits found", "Description": "No habits could be extracted for this task."}]
                 else:
-                    print("[Error] Unexpected task_habits format detected:", type(task_habits), task_habits)
-                    raise ValueError("Unexpected format of task_habits.")
+                    print(f"[Debug] Non-empty task_habits for task '{task_title}':\n",
+                          json.dumps(task_habits, indent=2, ensure_ascii=False))
 
+                # 检查 task_habits 数据类型
+                if isinstance(task_habits, dict):
+                    task_habits = [
+                        {"Pattern": task_habits.get("Pattern", ""), "Description": task_habits.get("Description", "")}
+                    ]
+                elif isinstance(task_habits, list):
+                    # 确保每一项都有必要的字段
+                    processed_habits = []
+                    for habit in task_habits:
+                        if isinstance(habit, dict):
+                            pattern = habit.get("Pattern", None)
+                            description = habit.get("Description", None)
+                            if pattern and description:
+                                processed_habits.append({"Pattern": pattern, "Description": description})
+                            else:
+                                print(f"[Warning] Skipping incomplete habit: {habit}")
+                    task_habits = processed_habits
+
+                    task_habits = [
+                        {"Pattern": "No habits found", "Description": "No habits could be extracted for this task."}]
+
+                # 拼接到 all_habits_prompts
                 all_habits_prompts.append({
                     "Task": task_title,
                     "Habits": task_habits
                 })
+                print(f"[Debug] Added habits for task '{task_title}':\n",
+                      json.dumps(task_habits, indent=2, ensure_ascii=False))
 
             # Step 2: 构建完整的 Habits 和 Tasks prompt
             print("[Debug] All habits prompts:\n", json.dumps(all_habits_prompts, indent=2, ensure_ascii=False))
@@ -117,17 +145,20 @@ class Rescheduler(BaseModule):
 
             # 调用大模型生成新计划
             response = send_chat_prompts(sys_prompt, user_prompt, self.llm, prefix="Reschedule")
-            print("[Info] Chat Response:\n", response)
-
+            normalized_plans = self.clean_and_parse_json(response)
+            print("[Info] Chat Response:\n", normalized_plans)
             # 提取 JSON 数据
             try:
-                schedule = json.loads(response)  # response 是一个 JSON 字符串
+                if isinstance(normalized_plans, (list, dict)):
+                    print("[Debug] normalized_plans is already a Python object.")
+                    return normalized_plans
+                schedule = json.loads(normalized_plans)  # response 是一个 JSON 字符串
                 if isinstance(schedule, list):
                     print("[Debug] Successfully parsed schedule as JSON list.")
-                    return schedule
+                    return normalized_plans
             except json.JSONDecodeError as e:
                 print(f"[Error] JSON decode error: {e}")
-                print("[Debug] Raw response causing error:\n", response)
+                print("[Debug] Raw response causing error:\n", normalized_plans)
                 return None
 
             print("[Error] Response is not a valid JSON list.")

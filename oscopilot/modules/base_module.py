@@ -114,6 +114,71 @@ class BaseModule:
         # Return the list of matched task descriptions.
         return data_list
 
+    def extract_habit_from_response(self,response):
+        """
+        Extracts the content of the first pair of curly braces from the response and ensures it's parsed as a dictionary or a list.
+
+        Parameters:
+            response (str): The string containing the response, which includes a JSON-like structure.
+
+        Returns:
+            dict or list: The parsed JSON content if valid, otherwise an empty dictionary or list.
+        """
+        try:
+            # 匹配第一个大括号 {} 中的内容，包括嵌套
+            match = re.search(r'(\{.*?\})', response, re.DOTALL)
+            if match:
+                extracted = match.group(1)  # 提取第一个匹配的大括号内容
+                print("[Debug] Extracted JSON string:", extracted)
+                try:
+                    # 尝试直接解析 JSON
+                    habit_data = json.loads(extracted)
+                    return habit_data
+                except json.JSONDecodeError as e:
+                    # 如果解析失败，尝试补全缺失部分
+                    # 自动补全右方括号 "]" 或右大括号 "}"
+                    fixed_json = extracted
+                    if fixed_json.count("[") > fixed_json.count("]"):
+                        fixed_json += "]"  # 补全右方括号
+                    if fixed_json.count("{") > fixed_json.count("}"):
+                        fixed_json += "}"  # 补全右大括号
+                    try:
+                        # 再次尝试解析修复后的 JSON
+                        habit_data = json.loads(fixed_json)
+                        return habit_data
+
+                    except json.JSONDecodeError as e:
+            else:
+                return {"error": "No JSON found"}
+        except Exception as e:
+            return {"error": str(e)}
+
+    def clean_and_parse_json(self,response):
+        """
+        Clean the response and parse it as JSON.
+
+        This function removes any extra formatting (e.g., triple backticks) and ensures the content
+        is valid JSON before parsing.
+
+        :param response: The raw response string
+        :return: Parsed JSON object or an error message
+        """
+        try:
+            # 去掉可能的 ```json 和 ``` 标记
+            clean_response = re.sub(r"```json|```", "", response).strip()
+
+            # 打印清理后的响应，便于调试
+            print("[Debug] Cleaned response for JSON parsing:\n", clean_response)
+
+            # 尝试解析为 JSON
+            parsed_json = json.loads(clean_response)
+            return parsed_json
+        except json.JSONDecodeError as e:
+            # 如果解析失败，打印错误并返回空
+            print("[Error] JSON decode error:", e)
+            print("[Debug] Raw response causing error:\n", response)
+            return None
+
     def transfer_data_to_prompt(self, data_list):
 
         if not isinstance(data_list, (list, dict)):
