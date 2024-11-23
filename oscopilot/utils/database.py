@@ -184,40 +184,40 @@ class DailyLogDatabase(Database):
         return logs
 
 
-
-    def fetch_recent_logs(self, user_id, top_k, days = -1, task=None):
-        dailylog_db = DailyLogDatabase("Daily_logs")
-        dailylog_db.collection.create_index([("Date", DESCENDING)])
-        dailylog_db.collection.create_index(["user_id"])
-        indexes = dailylog_db.collection.index_information()
-        # print(indexes)
-        query = {
-            "user_id": user_id
-        }
-        if days > 0:
-            end_date = datetime.now()
-            start_date = end_date - timedelta(days=days)
-            start_timestamp = int(start_date.timestamp())
-            end_timestamp = int(end_date.timestamp())
-            print(start_timestamp, end_timestamp)
-            query["Date"] = {"$gte": start_timestamp, "$lte": end_timestamp},
-        pipeline = []
-        if task is not None:
-            task_embedding = dailylog_db.get_embedding(task)
-            pipeline.append({
-                "$search": {
-                    "knnBeta": {
-                        "vector": task_embedding,
-                        "path": "embedding",
-                        "k": top_k
-                    }
-                }
-            })
-        pipeline.append({"$match": query})
-        pipeline.append({"$limit": top_k})
-        logs = dailylog_db._find(pipeline)
-        print(f"Find {len(logs)} logs")
-        return logs
+    #
+    # def fetch_recent_logs(self, user_id, top_k, days = -1, task=None):
+    #     dailylog_db = DailyLogDatabase("DailyLogs")
+    #     dailylog_db.collection.create_index([("Date", DESCENDING)])
+    #     dailylog_db.collection.create_index(["user_id"])
+    #     indexes = dailylog_db.collection.index_information()
+    #     # print(indexes)
+    #     query = {
+    #         "user_id": user_id
+    #     }
+    #     if days > 0:
+    #         end_date = datetime.now()
+    #         start_date = end_date - timedelta(days=days)
+    #         start_timestamp = int(start_date.timestamp())
+    #         end_timestamp = int(end_date.timestamp())
+    #         print(start_timestamp, end_timestamp)
+    #         query["Date"] = {"$gte": start_timestamp, "$lte": end_timestamp},
+    #     pipeline = []
+    #     if task is not None:
+    #         task_embedding = dailylog_db.get_embedding(task)
+    #         pipeline.append({
+    #             "$search": {
+    #                 "knnBeta": {
+    #                     "vector": task_embedding,
+    #                     "path": "embedding",
+    #                     "k": top_k
+    #                 }
+    #             }
+    #         })
+    #     pipeline.append({"$match": query})
+    #     pipeline.append({"$limit": top_k})
+    #     logs = dailylog_db._find(pipeline)
+    #     print(f"Find {len(logs)} logs")
+    #     return logs
 
 
 
@@ -351,7 +351,7 @@ class DeadlineDatabase(Database):
             "Title": "Task Title", # required
             "Description": "Task Description", # optional
             "Start Time": "Task Start Time", # optional, format = "%Y%m%d%H%M", e.g., "202411201200"
-            "Deadline": "Task Deadline",
+            "Deadline": "Task Deadline", #required
             "Subtasks": [], # if task is a parent task, this field will contain subtasks' id, optional
             "Parent Task": [], # if task is a subtask, this field will contain parent task's id, required for subtasks
             "Status": 0, # optional
@@ -535,22 +535,18 @@ class DeadlineDatabase(Database):
         user_id (int): The user ID associated with the tasks.
         reschedule_time (str): The reschedule time in timestamp
         """
-        query = []
-        query.append({
-                "StartTime": {"$lt": reschedule_time},
-                "UserID": user_id,
-                "Status": {"$ne": 2}  # Status not completed
-            })
+        filter_query = {
+            "StartTime": {"$lt": reschedule_time},
+            "UserID": user_id,
+            "Status": {"$ne": 2}  # Status not completed
+        }
         if need_to_prompt:
-            query.append({
-                "text": 0, "embedding": 0, "user_id": 0, "Parent Task": 0, "Subtasks": 0, "Type": 0
-            })
+            projection = {"text": 0, "embedding": 0, "user_id": 0, "Parent Task": 0, "Subtasks": 0, "Type": 0}
         else:
-            query.append({
-                "text": 0, "embedding": 0, "user_id": 0
-            })
+            projection = {"text": 0, "embedding": 0, "user_id": 0}
+
         try:
-            results = self.collection.find(query)
+            results = self.collection.find(filter_query, projection)
             tasks = []
             for result in results:
                 if need_to_prompt:

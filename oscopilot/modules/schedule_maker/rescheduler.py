@@ -139,7 +139,7 @@ class Rescheduler(BaseModule):
     def execute_reschedule(self, start_time, deadline):
         """执行重新调度任务"""
         try:
-            tasks_to_reschedule = self.get_tasks_to_reschedule()
+            tasks_to_reschedule = self.deadline_db.get_tasks_need_to_reschedule(user_id=self.user_id, reschedule_time=self.reschedule_time.timestamp())
             if not tasks_to_reschedule:
                 print("[Info] No tasks to reschedule.")
                 return None
