@@ -2,20 +2,21 @@ name: oscopilot_env
 channels:
   - defaults
 dependencies:
-  - bzip2=1.0.8=h6c40b1e_6
-  - ca-certificates=2024.7.2=hecd8cb5_0
-  - libffi=3.4.4=hecd8cb5_1
-  - ncurses=6.4=hcec6c5f_0
-  - openssl=3.0.15=h46256e1_0
-  - pip=24.2=py310hecd8cb5_0
-  - python=3.10.14=h5ee71fb_1
-  - readline=8.2=hca72f7f_0
-  - setuptools=72.1.0=py310hecd8cb5_0
-  - sqlite=3.45.3=h6c40b1e_0
-  - tk=8.6.14=h4d00af3_0
-  - wheel=0.44.0=py310hecd8cb5_0
-  - xz=5.4.6=h6c40b1e_1
-  - zlib=1.2.13=h4b97444_1
+  - bzip2=1.0.8
+  - ca-certificates=2024.9.24
+  - h11=0.14.0
+  - libffi=3.4.4
+  - ncurses=6.4
+  - openssl=3.0.15
+  - pip=24.2
+  - python=3.10.14
+  - readline=8.2
+  - setuptools=72.1.0
+  - sqlite=3.45.3
+  - tk=8.6.14
+  - wheel=0.44.0
+  - xz=5.4.6
+  - zlib=1.2.13
   - pip:
       - aiohttp==3.9.1
       - aiosignal==1.3.1
@@ -35,6 +36,7 @@ dependencies:
       - cachetools==5.3.2
       - certifi==2023.11.17
       - cffi==1.16.0
+      - chardet==3.0.4
       - charset-normalizer==3.3.2
       - chroma-hnswlib==0.7.3
       - chromadb==0.4.20
@@ -51,8 +53,10 @@ dependencies:
       - deprecated==1.2.14
       - dill==0.3.7
       - distro==1.8.0
+      - dnspython==1.16.0
       - document==1.0
       - docutils==0.20.1
+      - einops==0.8.0
       - et-xmlfile==1.1.0
       - exceptiongroup==1.2.0
       - executing==2.1.0
@@ -66,13 +70,16 @@ dependencies:
       - googleapis-common-protos==1.62.0
       - greenlet==3.0.2
       - grpcio==1.60.0
-      - h11==0.14.0
-      - httpcore==1.0.2
+      - h2==3.2.0
+      - hpack==3.0.0
+      - hstspreload==2024.11.1
+      - httpcore==1.0.7
       - httptools==0.6.1
-      - httpx==0.25.2
-      - huggingface-hub==0.19.4
+      - httpx==0.27.2
+      - huggingface-hub==0.26.2
       - humanfriendly==10.0
-      - idna==3.6
+      - hyperframe==5.2.0
+      - idna==2.10
       - imagesize==1.4.1
       - importlib-metadata==6.11.0
       - importlib-resources==6.1.1
@@ -82,6 +89,7 @@ dependencies:
       - jaraco-context==4.3.0
       - jedi==0.19.1
       - jinja2==3.1.3
+      - joblib==1.4.2
       - jsonpatch==1.33
       - jsonpointer==2.4
       - jupyter-client==8.6.1
@@ -109,6 +117,7 @@ dependencies:
       - mypy-extensions==1.0.0
       - myst-parser==2.0.0
       - nest-asyncio==1.6.0
+      - networkx==3.4.2
       - numpy==1.26.2
       - oauthlib==3.2.2
       - onnxruntime==1.16.3
@@ -149,6 +158,7 @@ dependencies:
       - pydantic==2.5.2
       - pydantic-core==2.14.5
       - pygments==2.17.2
+      - pymongo==4.10.1
       - pyparsing==3.1.1
       - pypdfium2==4.27.0
       - pypika==0.48.9
@@ -164,8 +174,13 @@ dependencies:
       - regex==2023.10.3
       - requests==2.31.0
       - requests-oauthlib==1.3.1
+      - rfc3986==1.5.0
       - rsa==4.9
+      - safetensors==0.4.5
+      - scikit-learn==1.5.2
+      - scipy==1.14.1
       - seaborn==0.13.2
+      - sentence-transformers==3.3.0
       - six==1.16.0
       - sniffio==1.3.0
       - snowballstemmer==2.2.0
@@ -184,12 +199,15 @@ dependencies:
       - starlette==0.27.0
       - sympy==1.12
       - tenacity==8.2.3
+      - threadpoolctl==3.5.0
       - tiktoken==0.5.2
-      - tokenizers==0.15.0
+      - tokenizers==0.20.3
       - tomli==2.0.1
+      - torch==2.2.2
       - tornado==6.4.1
       - tqdm==4.66.1
       - traitlets==5.14.3
+      - transformers==4.46.2
       - typer==0.9.0
       - typing-extensions==4.8.0
       - typing-inspect==0.9.0
