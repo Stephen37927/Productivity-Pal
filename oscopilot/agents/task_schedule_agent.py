@@ -12,7 +12,7 @@ class TaskScheduleAgent:
      
 
     def set_reschedule_time(self, reschedule_time):
-        self.rescheduler = Rescheduler(user_id=1, reschedule_time=reschedule_time)
+        self.rescheduler = Rescheduler(user_id=2, reschedule_time=reschedule_time)
 
     def schedule_task(self, user_id, task_name,description,deadline):
         deadline=int(datetime.datetime.strptime(deadline, "%Y-%m-%d %H:%M:%S").timestamp())
@@ -49,7 +49,7 @@ class TaskScheduleAgent:
             add_task["Title"]=task["Task"]
             add_task["Status"]=0
             add_task["Parent Task"]= [id]
-            add_task["Start"]=start_timestamp
+            add_task["Start Time"]=start_timestamp
             add_task["Deadline"]=end_timestamp
 
             subtask_id=self.deadline_db.insert_one_task(add_task,user_id,1,times_format="")
@@ -59,11 +59,6 @@ class TaskScheduleAgent:
         self.deadline_db.update_status(user_id,id,1)
         return 
     
-    def reschedule_task(self,user_id, reschedule_time):
+    def reschedule_task(self):
         tasks=self.rescheduler.get_tasks_to_reschedule()
-
-if __name__=="__main__":
-    agent=TaskScheduleAgent()
-    task_name = "Financial Fraud Presentation"
-    task_description = "Prepare a presentation on financial fraud for the upcoming conference." 
-    agent.schedule_task(2,task_name,task_description,"2024-11-30 23:59:59")
+        print(tasks)
