@@ -205,3 +205,5 @@ working_dir/agents
 data
 translator.py
 split_file.py
+productivity_pal.yaml
+oscopilot/utils/datamining.ipynb
