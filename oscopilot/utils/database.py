@@ -432,8 +432,6 @@ class DeadlineDatabase(Database):
         except Exception as e:
             print("Error:", e)
             return None
-        finally:
-            self.client.close()
 
     def find_by_status(self,status, user_id, need_to_prompt = False):
         """
