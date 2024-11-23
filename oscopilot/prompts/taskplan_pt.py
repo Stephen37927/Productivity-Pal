@@ -126,7 +126,7 @@ taskPlannerPrompt = {
 
         - **Example**:
         generate a detailed schedule in JSON format that fits all tasks into available time slots without conflicts.
-        The only output should be as follows
+        The only output must be as follows
         - ** Output **:
         [
             {

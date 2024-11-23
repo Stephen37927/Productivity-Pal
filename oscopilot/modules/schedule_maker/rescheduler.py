@@ -6,21 +6,19 @@ from dotenv import load_dotenv
 from oscopilot import BaseModule
 from oscopilot.prompts.Schedule_Prompt import schedule_prompt
 from oscopilot.utils.database import DailyLogDatabase, DeadlineDatabase
-from oscopilot.modules.habit_tracker.habit_tracker import HabitTracker
+from oscopilot.modules.planner.task_planner import TaskPlanner
 from oscopilot.utils.utils import send_chat_prompts
 from string import Template
 
 load_dotenv(override=True)
 
 class Rescheduler(BaseModule):
-    def __init__(self, user_id, reschedule_time, prompt):
+    def __init__(self, user_id, reschedule_time):
         super().__init__()
         self.user_id = user_id
         self.reschedule_time = datetime.strptime(reschedule_time, "%Y-%m-%d %H:%M")
-        self.habit_tracker = HabitTracker()
         self.daily_log_db = DailyLogDatabase("DailyLogs")
         self.deadline_db = DeadlineDatabase("Deadlines")
-        self.prompt = schedule_prompt
 
     def get_tasks_to_reschedule(self):
         """获取需要重新调度的任务"""
