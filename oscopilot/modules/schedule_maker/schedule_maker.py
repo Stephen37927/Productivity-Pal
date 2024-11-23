@@ -14,7 +14,7 @@ MODEL_NAME = os.getenv('CALENDAR_PLAN_ENDPOINT')
 class ScheduleMaker(BaseModule):
     def __init__(self):
         super().__init__()
-        self.habit_tracker = HabitTracker()  # 确保初始化 habit_tracker
+        self.habit_tracker = HabitTracker()
 
     def fetch_logs_by_deadline(self, deadline_str, days=7, limit=-1):
         """
@@ -32,20 +32,20 @@ class ScheduleMaker(BaseModule):
         return filtered_logs[:limit] if limit > 0 else filtered_logs
 
 
-    def fetch_habits(self):
+    def fetch_habits(self,task):
         """
         调用 HabitTracker 获取最近 7 天的习惯。
         """
         try:
-            return self.habit_tracker.get_habit_from_logs()
+            return self.habit_tracker.get_habit_about_certain_task(user_id=1, task=task, top_k=5)
         except Exception as e:
             print(f"Error fetching habits: {e}")
             return []
 
-    def create_schedule(self, deadline):
+    def create_schedule(self, deadline, deadline_name):
         try:
             # Step 1: 获取 Habit 数据
-            habits = self.fetch_habits()
+            habits = self.fetch_habits(deadline_name)
 
             # Step 2: 根据 Deadline 获取日志
             logs = self.fetch_logs_by_deadline(deadline)
@@ -53,6 +53,7 @@ class ScheduleMaker(BaseModule):
             # Step 3: 构建提示内容
             user_prompt = (
                 schedule_prompt["USER_PROMPT"]
+                + f"\n**Deadline Name:** {deadline_name}"
                 + "\n**Deadline:** "
                 + deadline
                 + "\n**Logs:** "
@@ -62,14 +63,18 @@ class ScheduleMaker(BaseModule):
             )
 
             # Step 4: 调用模型生成计划
+            self.llm.set_model_name(MODEL_NAME)
             response = send_chat_prompts(schedule_prompt["USER_PROMPT"], user_prompt, self.llm, prefix="Schedule")
             return response
         except Exception as e:
             print(f"Error creating schedule: {e}")
             return None
 
+
+
 if __name__ == '__main__':
     schedule_maker = ScheduleMaker()
     deadline = "202411201200"  # 示例 Deadline
-    schedule = schedule_maker.create_schedule(deadline)
+    deadline_name = "Financial Fraud Presentation"
+    schedule = schedule_maker.create_schedule(deadline, deadline_name)
     print("生成的计划表:\n", schedule)

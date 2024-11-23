@@ -5,86 +5,63 @@ schedule_prompt = {
     2. Leverage the most similar existing habit in the input to determine the ideal timing, duration, and approach for scheduling portions of the task.
     3. Ensure the new task meets its deadline by distributing it across available times within the user's routine, while preserving the user's habits as much as possible.
     4. Return the details of the scheduled task segments in a structured JSON format, distributing the task across days if needed.
+    5. Notice the time required for different tasks, broken down according to the volume of the task volume
+    6. Do not include any additional text or explanation outside of this JSON block.
+    7. Tasks must be scheduled separately. Ensure that every task in the input receives a schedule.
+    8. You must schedule tasks exactly as provided in the "Tasks" input. Do not introduce new tasks or modify the existing ones.
     ''',
     "USER_PROMPT": '''
     ### **Example**:
-    **Input Habits, Event, and Similarity**:
-    ```json
+    Notice the time required for different tasks, broken down according to the volume of the task volume
+    **Input Habits, Event, and Daily Logs**:
     {
         "Habits": [
             {
                 "Pattern": "Morning relaxation",
-                "Description": "Often starts the day with a short period of relaxation, such as browsing social media."
+                "Description": "Typically begins the day with 15-30 minutes of light activities, such as browsing social media or enjoying a warm beverage to ease into the day."
             },
             {
                 "Pattern": "Afternoon focus",
-                "Description": "Usually engages in focused activities like studying during the afternoon, lasting for about 1-2 hours."
+                "Description": "Engages in focused work or study sessions during the early to mid-afternoon, usually lasting between 1 to 2 hours with minimal interruptions."
             },
             {
                 "Pattern": "Midday meal breaks",
-                "Description": "Takes regular meal breaks around noon, usually lasting 30 minutes to an hour."
+                "Description": "Around midday, takes meal breaks that are concise and rejuvenating, lasting approximately 30-45 minutes, often followed by light stretching or casual conversations."
             },
             {
                 "Pattern": "Evening relaxation",
-                "Description": "Ends the day with a longer relaxation period, often involving entertainment or social media."
+                "Description": "Winds down the day with 1-2 hours of relaxing activities like watching entertainment, social media scrolling, or engaging in hobbies."
             }
         ],
-        "Event": {
-            "Activity": "Prepare presentation slides",
-            "Deadline": "2023-11-20 5:00 pm"
-        },
-        "MostSimilarHabit": {
-            "Name": "Sleeping",
-            "Type": "Leisure",
-            "Start Time": "September 28, 2024 1:29 AM",
-            "End Time": "September 28, 2024 8:47 AM",
-            "Date": "2024/09/28"
-        }
+        "Tasks": [
+            {
+                "Title": "CV Reviewer",
+                "Description": "Review the CVs of the applicants for the Data Scientist position.",
+                "Start Time": "1732957200",
+                "Status": 1
+            },
+            {
+                "Title": "Weekend Getaway Planning",
+                "Description": "Plan and finalize the itinerary for a weekend getaway with friends. Book transportation and accommodation.",
+                "Start Time": "1733832000",
+                "Status": 0
+            }
+        ]
     }
-    ```
-
     **Output**:
-    ```json
     [
         {
-            "Task": "Prepare presentation slides - Part 1",
+            "Task": "CV Reviewer",
             "Date": "2023-11-17",
-            "StartTime": "2:00 pm",
-            "EndTime": "4:00 pm",
-            "ReferenceHabit": {
-                "Activity": "Studying",
-                "Pattern": "Afternoon focus",
-                "SimilarityReason": "Both activities require sustained concentration and focus."
-            }
+            "StartTime": "10:00 AM",
+            "EndTime": "12:00 PM"
         },
         {
-            "Task": "Prepare presentation slides - Part 2",
+            "Task": "Weekend Getaway Planning",
             "Date": "2023-11-18",
-            "StartTime": "10:00 am",
-            "EndTime": "12:00 pm",
-            "ReferenceHabit": {
-                "Activity": "Studying",
-                "Pattern": "Afternoon focus",
-                "SimilarityReason": "Continues similar focus period on a subsequent day."
-            }
-        },
-        {
-            "Task": "Prepare presentation slides - Final Review",
-            "Date": "2023-11-20",
-            "StartTime": "1:00 pm",
-            "EndTime": "3:00 pm",
-            "ReferenceHabit": {
-                "Activity": "Studying",
-                "Pattern": "Afternoon focus",
-                "SimilarityReason": "Final review session before the deadline."
-            }
+            "StartTime": "02:00 PM",
+            "EndTime": "04:00 PM"
         }
     ]
-
-    ### **Guidelines**:
-    - Incorporate insights from the most similar habit, such as its time, duration, and decision-making context, to guide scheduling the new task.
-    - If time constraints require adjustments to existing habits, explain briefly in the "ReferenceHabit" section why the adjustment is necessary.
-    - Ensure the output aligns with the user's habits and rules as much as possible.
-    - The final result must include the new task details and the referenced similar habit, formatted as shown above.
     '''
 }
