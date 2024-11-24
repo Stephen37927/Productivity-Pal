@@ -40,41 +40,6 @@ class AppleScript():
         month = date_obj.strftime("%m")
         day = date_obj.strftime("%d")
 
-        # applescript = f'''
-        # on createEvent(eventTitle, eventYear, eventMonth, eventDay, eventStartTime, eventEndTime)
-        #     tell application "Calendar"
-        #         tell calendar "Home"
-        #             -- 设置开始日期
-        #             set my_start_date to current date
-        #             set year of my_start_date to {year} as integer
-        #             set month of my_start_date to {month} as integer
-        #             set day of my_start_date to {day} as integer
-
-        #             -- 解析开始时间
-        #             set hours to (text 1 thru 2 of eventStartTime) as integer
-        #             set minutes to (text 4 thru 5 of eventStartTime) as integer
-        #             set time of my_start_date to (hours * 3600 + minutes * 60)
-
-        #             -- 设置结束日期
-        #             set my_end_date to current date
-        #             set year of my_end_date to {year} as integer
-        #             set month of my_end_date to {month} as integer
-        #             set day of my_end_date to {day} as integer
-
-        #             -- 解析结束时间
-        #             set hours to (text 1 thru 2 of eventEndTime) as integer
-        #             set minutes to (text 4 thru 5 of eventEndTime) as integer
-        #             set time of my_end_date to (hours * 3600 + minutes * 60)
-
-        #             -- 创建事件
-        #             make new event with properties {{summary:eventTitle, start date:my_start_date, end date:my_end_date}}
-        #         end tell
-        #     end tell
-        # end createEvent
-
-        # createEvent("{event_title}", "{year}", "{month}", "{day}", "{event_start_time}", "{event_end_time}")
-        # '''
-
         applescript = f'''
         on createEvent(eventTitle, eventYear, eventMonth, eventDay, eventStartTime, eventEndTime)
             tell application "Calendar"
